@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.CreatePostActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:elevation="30dp"
+            android:background="#f3f6f9"
+            >
+            <ImageView
+                android:id="@+id/iv_arrow_back"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_back_arrow"
+                android:layout_width="30dp"
+                android:layout_height="30dp"/>
+            <TextView
+                android:layout_marginStart="5dp"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                android:text="Create post"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+            <TextView
+                android:id="@+id/tv_post_button"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp"
+                android:background="#d6d6d6"
+                android:padding="5dp"
+                android:text="POST"
+                android:textColor="@color/dark_green"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_margin="8dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:src="@drawable/demo"
+                app:civ_border_color="@color/black"
+                app:civ_border_width="2dp"
+                app:civ_border_overlay="true"
+                android:layout_width="50dp"
+                android:layout_height="50dp"/>
+            <TextView
+                android:text="Deependra Bishwakarma"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:layout_marginStart="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <EditText
+            android:hint="whats on your mind"
+            android:id="@+id/et_whats_on_your_mind"
+            android:gravity="start"
+            android:padding="5dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/search_background"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"/>
+        <ImageView
+            android:id="@+id/iv_post_image"
+            android:visibility="gone"
+            android:background="@drawable/search_background"
+            android:layout_margin="8dp"
+            android:src="@drawable/demo"
+            android:scaleType="centerInside"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"/>
+        <Button
+            android:id="@+id/btn_add_image"
+            android:layout_margin="8dp"
+            android:text="Add Image"
+            android:backgroundTint="@color/dark_green"
+            android:src="@color/cardview_dark_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+</ScrollView>

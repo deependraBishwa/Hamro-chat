@@ -1,0 +1,43 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.HamroChat" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <item name="android:statusBarColor">@color/dark_green</item>
+    </style>
+
+    <style name="Theme.HamroChat" parent="Base.Theme.HamroChat" />
+
+
+    <color name="accent">@color/blue</color>
+    <color name="accent_secondary">@color/blue</color>
+    <color name="background">@color/violent</color>
+    <color name="background_secondary">@color/light_blue</color>
+
+    <style name="BottomSheetDialogTheme" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
+        <item name="background">@drawable/card_background</item>
+    </style>
+
+    //bottomsheet themes
+    <style name="BottomSheetStyle" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="height">0dp</item>
+        <item name="background">@android:color/transparent</item>
+    </style>
+
+
+    //splash theme
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/white</item>
+
+        <!-- Customize other attributes like colors, fonts, etc. here -->
+    </style>
+
+    // themes for progress dialog
+    <style name="progressDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+</resources>

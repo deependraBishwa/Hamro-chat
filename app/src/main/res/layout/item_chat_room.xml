@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardElevation="30dp"
+    android:layout_marginTop="1dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:foreground="?android:selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="5dp"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/prof_image"
+                android:scaleType="centerCrop"
+                app:riv_border_width="2dp"
+                app:riv_corner_radius="2dp"
+                app:riv_border_color="@color/black"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/demo"/>
+
+            <TextView
+                android:layout_toEndOf="@id/prof_image"
+                android:id="@+id/chatroom_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:text="Hamro group"
+                android:textSize="16sp"
+                android:textAllCaps="false"
+                android:textColor="@color/dark_green"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_below="@id/chatroom_name"
+                android:layout_toEndOf="@id/prof_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="20 people chatting"/>
+
+
+            <ImageView
+                android:id="@+id/btn_enter"
+                android:src="@drawable/ic_enter"
+                android:layout_alignParentEnd="true"
+                android:layout_width="30dp"
+                android:layout_height="30dp" />
+
+        </RelativeLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tv_welcome_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="hi every one wel come to this group, here you can find your soulmate , if like the room share"
+                android:textAlignment="center" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "458886020895",
+    "project_id": "hamro-chat-a74f7",
+    "storage_bucket": "hamro-chat-a74f7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458886020895:android:dd7e7043b6e8eaf9a37a2a",
+        "android_client_info": {
+          "package_name": "com.deepdev.hamrochat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "458886020895-h2iiavkd47ojvpbeofe3pndubos4nfcs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCReG7iHwguBwWReSJCzpKl2sLM8XbAeBc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "458886020895-h2iiavkd47ojvpbeofe3pndubos4nfcs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

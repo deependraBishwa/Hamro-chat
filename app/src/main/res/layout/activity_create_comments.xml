@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.CreateCommentsActivity">
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        tools:listitem="@layout/item_comment"
+        android:layout_above="@+id/linear_layout"
+        android:id="@+id/recyclerview_create_comment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+        <LinearLayout
+            android:id="@+id/linear_layout"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:background="#EDEDEC"
+            android:elevation="15dp"
+            android:layout_alignParentBottom="true"
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <androidx.cardview.widget.CardView
+                app:cardElevation="15dp"
+                android:layout_weight="1"
+                android:layout_margin="10dp"
+                app:cardCornerRadius="20dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+                <EditText
+                    android:id="@+id/edt_text_comment_box"
+                    android:background="@color/white"
+                    android:paddingVertical="10dp"
+                    android:paddingHorizontal="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </androidx.cardview.widget.CardView>
+           <ImageButton
+               android:id="@+id/btn_send_comment"
+               android:backgroundTint="@color/dark_green"
+               android:src="@drawable/ic_back_arrow"
+               android:rotation="90"
+               android:layout_width="50dp"
+               android:layout_height="50dp"
+               app:tint="@color/white" />
+
+        </LinearLayout>
+</RelativeLayout>
