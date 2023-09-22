@@ -11,11 +11,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 class SplashActivity : AppCompatActivity() {
 
     private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val currentUser by lazy { firebaseAuth.currentUser?.uid.toString() }
+    private val currentUser by lazy { firebaseAuth.currentUser!! }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val currentUser = FirebaseAuth.getInstance().currentUser
+
 
         if (currentUser != null) {
             val db = FirebaseFirestore.getInstance()

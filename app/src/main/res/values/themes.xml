@@ -4,6 +4,8 @@
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
 
+
+<!--        to change the color of the all the item in the toolbar -->
         <item name="android:statusBarColor">@color/dark_green</item>
     </style>
 
@@ -19,6 +21,8 @@
         <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
         <item name="background">@drawable/card_background</item>
     </style>
+
+
 
     //bottomsheet themes
     <style name="BottomSheetStyle" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">

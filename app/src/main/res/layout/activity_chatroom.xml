@@ -12,6 +12,7 @@
         android:id="@+id/toolbar"
         android:background="@color/dark_green"
         app:title="chatroom name"
+        app:menu="@menu/menu_chatroom_act"
         app:titleTextColor="@color/white"
         app:navigationIcon="@drawable/ic_back_arrow"
         android:layout_width="match_parent"

@@ -4,10 +4,13 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.deepdev.hamrochat.MyApplication
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.adapters.ChatroomSmsAdapter
 import com.deepdev.hamrochat.databinding.ActivityChatroomBinding
@@ -16,35 +19,35 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.util.UUID
 
 
 class ChatroomActivity : AppCompatActivity() {
     private var chatroomId: String? = ""
     private var chatroomName: String? = ""
-    private var username : String?=""
-    private var userImageUrl : String?=""
-    private var name : String?=""
-    private var gender : String?=""
 
-    private lateinit var messageList : ArrayList<ChatroomSmsModel>
+    private lateinit var messageList: ArrayList<ChatroomSmsModel>
     private lateinit var messageAdapter: ChatroomSmsAdapter
 
     private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val currentUser by lazy { firebaseAuth.currentUser?.uid.toString() }
-    private val firebaseDatabase by lazy { FirebaseFirestore.getInstance() }
     private val binding by lazy { ActivityChatroomBinding.inflate(layoutInflater) }
+    private val app by lazy {application as  MyApplication }
+    private val userDataModel by lazy { app.getUserData() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        getUserDetails()
+
         disableButton()
         intent?.let {
             chatroomId = it.getStringExtra("chatroomId")
             chatroomName = it.getStringExtra("chatroomName")
-
+            userEnterInChatroom()
         }
+
 
         setToolbar()
 
@@ -58,31 +61,24 @@ class ChatroomActivity : AppCompatActivity() {
 
     }
 
-    private fun getUserDetails() {
-        val db = FirebaseFirestore.getInstance()
-        val usersCollection = db.collection("users")
+    private fun userEnterInChatroom() {
+        val emptyData = mutableMapOf<String, Any>()
+        val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
+            .document(chatroomId!!).collection("users").document(currentUser)
+        userInChatRef.set(emptyData)
 
-        usersCollection.document(currentUser)
-            .get()
-            .addOnSuccessListener { documentSnapshot ->
-                if (documentSnapshot.exists()) {
-                    username = documentSnapshot.getString("username") ?: ""
-                    userImageUrl = documentSnapshot.getString("imageUrl") ?: ""
-                    name = documentSnapshot.getString("name") ?: ""
-                    gender = documentSnapshot.getString("gender") ?: ""
-                } else {
-                    // Handle the case where the user document does not exist
-                }
-            }
-            .addOnFailureListener { exception ->
-                // Handle any errors that occur during the fetch
-            }
     }
+
+
 
 
     private fun setToolbar() {
         binding.toolbar.title = chatroomName
         setSupportActionBar(binding.toolbar)
+
+        // change the color of the 3 dot menu
+        val overflowIcon = binding.toolbar.overflowIcon
+        overflowIcon?.setTint(ContextCompat.getColor(this,  R.color.white))
     }
 
     private fun recyclerViewSetupForMessage() {
@@ -125,15 +121,15 @@ class ChatroomActivity : AppCompatActivity() {
     }
 
 
-    private val textWatcher = object : TextWatcher{
+    private val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
         }
 
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            if (s.toString().isNullOrEmpty() ){
+            if (s.toString().isNullOrEmpty()) {
                 disableButton()
-            }else{
+            } else {
                 enableButton()
             }
         }
@@ -156,7 +152,8 @@ class ChatroomActivity : AppCompatActivity() {
 
     private fun sendMessage() {
         val db = FirebaseFirestore.getInstance()
-        val messagesCollection = db.collection("messages").document(chatroomId!!).collection("chats")
+        val messagesCollection = db.collection("messages")
+            .document(chatroomId!!).collection("chats")
 
         val text = binding.edtMessageBox.text.toString().trim()
         val timestamp = FieldValue.serverTimestamp()
@@ -168,13 +165,13 @@ class ChatroomActivity : AppCompatActivity() {
             "timestamp" to timestamp,
             "authorUid" to authorUid,
             "messageId" to messageId,
-            "authorUsername" to username,
-            "authorImage" to userImageUrl,
+            "authorUsername" to userDataModel.username,
+            "authorImage" to userDataModel.imageUrl,
         )
 
         messagesCollection
             .add(messageObj)
-            .addOnSuccessListener { documentReference ->
+            .addOnSuccessListener { _ ->
                 // The message was successfully added to Firestore
                 binding.recyclerChatroomActivity.scrollToPosition(messageAdapter.itemCount - 1)
                 binding.edtMessageBox.setText("")
@@ -185,5 +182,31 @@ class ChatroomActivity : AppCompatActivity() {
             }
     }
 
+
+    // delete the user from chatroom when lives the chatroom
+    override fun onDestroy() {
+        val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
+            .document(chatroomId!!)
+            .collection("users").document(currentUser)
+
+        userInChatRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                userInChatRef.delete()
+            }
+        }
+        super.onDestroy()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId){
+            android.R.id.home-> finish()
+            R.id.menu_users-> Toast.makeText(applicationContext, "users", Toast.LENGTH_SHORT).show()
+        }
+        return true
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_chatroom_act, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
 }
 

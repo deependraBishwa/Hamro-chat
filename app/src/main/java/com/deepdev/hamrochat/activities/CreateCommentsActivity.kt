@@ -13,19 +13,17 @@ import com.deepdev.hamrochat.databinding.ActivityCreateCommentsBinding
 import com.deepdev.hamrochat.model.CommentModel
 import com.deepdev.hamrochat.utils.MyProgressDialog
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ServerValue
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 class CreateCommentsActivity : AppCompatActivity() {
 
-    private val binding by lazy { ActivityCreateCommentsBinding.inflate(layoutInflater)}
-    private val userId by lazy {  FirebaseAuth.getInstance().currentUser?.uid}
-    private lateinit var commentsList : ArrayList<CommentModel>
-    private lateinit var commentAdapter : CommentAdapter
+    private val binding by lazy { ActivityCreateCommentsBinding.inflate(layoutInflater) }
+    private val userId by lazy { FirebaseAuth.getInstance().currentUser?.uid }
+    private lateinit var commentsList: ArrayList<CommentModel>
+    private lateinit var commentAdapter: CommentAdapter
     private val progressBar by lazy { MyProgressDialog(this) }
 
     private var postId = ""
@@ -53,24 +51,23 @@ class CreateCommentsActivity : AppCompatActivity() {
     }
 
     private fun fetchComments() {
-        val commentRef = FirebaseDatabase.getInstance().getReference("comments").child(postId)
-            commentRef.addValueEventListener(
-                object : ValueEventListener{
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        commentsList.clear()
-                        for (snap in snapshot.children){
-                            val comment = snap.getValue(CommentModel::class.java)
-                            commentsList.add(comment!!)
-                        }
-                        commentAdapter.notifyDataSetChanged()
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(applicationContext, error.message, Toast.LENGTH_SHORT).show()
-                    }
-
+        val commentRef = Firebase.firestore.collection("comments").document(postId)
+            .collection("comment")
+            commentRef.addSnapshotListener { value, error ->
+                if (error != null) {
+                    Toast.makeText(applicationContext, error.message, Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
                 }
-            )
+                if (value != null && value.documents.isNotEmpty()) {
+                    commentsList.clear()
+                    for (document in value.documents) {
+                        val comment = document.toObject(CommentModel::class.java)
+                        commentsList.add(comment!!)
+                    }
+                    commentAdapter.notifyDataSetChanged()
+                }
+            }
+
         progressBar.hide()
     }
 
@@ -93,15 +90,15 @@ class CreateCommentsActivity : AppCompatActivity() {
         binding.edtTextCommentBox.addTextChangedListener(commentWatcher)
     }
 
-    private val commentWatcher= object : TextWatcher{
+    private val commentWatcher = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
         }
 
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            if (s.toString().isNotEmpty()){
+            if (s.toString().isNotEmpty()) {
                 buttonSendEnabled()
-            }else{
+            } else {
                 buttonSendDisabled()
             }
         }
@@ -122,13 +119,14 @@ class CreateCommentsActivity : AppCompatActivity() {
     }
 
     private fun sendButtonClick() {
-        val commentRef = FirebaseDatabase.getInstance().getReference("comments")
-            .child(postId).push()
+        val commentRef = Firebase.firestore.collection("comments")
+            .document(postId).collection("comment").document()
+
 
         val commentText = binding.edtTextCommentBox.text.toString().trim()
         val commentBy = userId
-        val commentId = commentRef.key.toString()
-        val timestamp = ServerValue.TIMESTAMP
+        val commentId = commentRef.id
+        val timestamp = FieldValue.serverTimestamp()
 
         val commentMap = hashMapOf(
             "comment" to commentText,
@@ -138,7 +136,7 @@ class CreateCommentsActivity : AppCompatActivity() {
         )
         binding.edtTextCommentBox.setText("")
         buttonSendDisabled()
-        commentRef.setValue(commentMap)
+        commentRef.set(commentMap)
     }
 
 }

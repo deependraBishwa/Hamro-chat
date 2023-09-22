@@ -3,6 +3,7 @@ package com.deepdev.hamrochat.adapters
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,13 +17,8 @@ import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.activities.CreateCommentsActivity
 import com.deepdev.hamrochat.model.ForyouModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -53,7 +49,7 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
 
     override fun onBindViewHolder(holder: ForyouViewHolder, position: Int) {
         val model = list[position]
-        model.postId?.let { checkIfPostIsLiked(it, holder.btnLike) }
+        checkIfPostIsLiked(model.postId!!, holder.btnLike)
 
         if (isImageEmpty(model.image)) {
             Glide.with(context).load(model.image).placeholder(R.drawable.ic_image_place_holder)
@@ -77,7 +73,7 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
             context.startActivity(intent)
         }
 
-        countLikes(holder.likeCount, model.postId)
+         countLikes(holder.likeCount, model.postId)
 
         countComments(holder.commentCount, model.postId)
     }
@@ -113,109 +109,89 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
     }
 
     private fun countComments(commentCount: TextView, postId: String?) {
-
-
-
+        val comentCountRef = Firebase.firestore.collection("comments").document(postId!!).collection("comment")
+            .addSnapshotListener { value, error ->
+                if (error !=null){
+                    Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
+                if (value !=null && value.documents.isNotEmpty()){
+                    commentCount.visibility=View.VISIBLE
+                    commentCount.text = value.documents.size.toString()+" Comments"
+                }else{
+                    commentCount.visibility=View.GONE
+                }
+            }
     }
 
 
     private fun countLikes(likeCount: TextView, postId: String?) {
 
 
-        val likeCountRef = FirebaseDatabase.getInstance().getReference("likes")
-            .child(postId!!)
+        val likeCountRef = Firebase.firestore.collection("likes").document(postId!!)
+            .collection("like")
 
-
-        likeCountRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val countOfLike = snapshot.childrenCount
-                if (countOfLike > 0) {
+            likeCountRef.addSnapshotListener { value, error ->
+                if (error != null){
+                    Toast.makeText(context, error.message , Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
+                if (value != null && value.documents.isNotEmpty()){
                     likeCount.visibility = View.VISIBLE
-                    likeCount.text = "$countOfLike Likes"
-                } else {
+                    likeCount.text = value.documents.size.toString()+" Likes"
+                }else{
                     likeCount.visibility = View.GONE
                 }
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
-            }
-
-        })
     }
 
     private fun likePost(postId: String, btnLike: TextView) {
+        val emptyData = HashMap<String, Any>()
+        val likeRef = Firebase.firestore.collection("likes").document(postId)
+            .collection("like").document(currentUser)
+        likeRef.get().addOnCompleteListener { task ->
+            if (task.result.exists()) {
+                likeRef.delete()
+                btnColorUnliked(btnLike)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val likeRef = FirebaseDatabase.getInstance().getReference("likes").child(postId)
-            likeRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.child(currentUser).exists()) {
-                        btnColorUnliked(btnLike)
-                        likeRef.child(currentUser).removeValue()
-                            .addOnFailureListener {
-                                btnColorLiked(btnLike)
-                            }
-                    } else {
-                        btnColorLiked(btnLike)
-                        likeRef.child(currentUser).setValue(true)
-                            .addOnFailureListener {
-                                btnColorUnliked(btnLike)
-                            }
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
-                }
-
-            })
+            } else {
+                likeRef.set(emptyData)
+                btnColorLiked(btnLike)
+            }
         }
 
     }
 
 
     private fun checkIfPostIsLiked(postId: String, btnLike: TextView) {
-
-        CoroutineScope(Dispatchers.IO).launch {
-            FirebaseDatabase.getInstance().getReference("likes").child(postId)
-                .child(currentUser).addValueEventListener(
-                    object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            if (snapshot.exists()) {
-                                btnColorLiked(btnLike)
-                            } else {
-                                btnColorUnliked(btnLike)
-                            }
-                        }
-
-                        override fun onCancelled(error: DatabaseError) {
-                            Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
-                        }
-
-                    }
-                )
+        Log.d("checkss", "checkIfPostIsLiked: $postId")
+        val likeRef = Firebase.firestore.collection("likes").document(postId).collection("like")
+            .document(currentUser)
+        likeRef.get().addOnSuccessListener {
+            if (it.exists()){
+               btnColorLiked(btnLike)
+            }else{
+                btnColorUnliked(btnLike)
+            }
         }
-
     }
+}
 
 
-    private fun isImageEmpty(postImage: String?): Boolean {
-        if (postImage != "") {
-            return true
-        }
-        return false
+private fun isImageEmpty(postImage: String?): Boolean {
+    if (postImage != "") {
+        return true
     }
+    return false
+}
 
-    // like counting
+// like counting
 
-    private fun btnColorUnliked(btnLike: TextView) {
-        btnLike.setTextColor(Color.GRAY)
-    }
+private fun btnColorUnliked(btnLike: TextView) {
+    btnLike.setTextColor(Color.GRAY)
+}
 
-    private fun btnColorLiked(btnLike: TextView) {
-        btnLike.setTextColor(Color.RED)
-    }
-
-
+private fun btnColorLiked(btnLike: TextView) {
+    btnLike.setTextColor(Color.RED)
 }

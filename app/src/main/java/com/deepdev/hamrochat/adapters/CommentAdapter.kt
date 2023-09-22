@@ -11,7 +11,8 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.model.CommentModel
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -71,15 +72,16 @@ class CommentAdapter(private val list : ArrayList<CommentModel>, private val con
         val model = list[position]
 
         holder.tvComment.text= model.comment
-        holder.tvCreatedDate.text =getDate( model.date)
+
 
         getCommentorDetails(model.commentBy, holder)
 
 
     }
 
+
     private fun getCommentorDetails(commentBy: String?, holder: CommentViewHolder) {
-        val db = FirebaseFirestore.getInstance()
+        val db = Firebase.firestore
         val usersCollection = db.collection("users")
 
         usersCollection.document(commentBy.toString())

@@ -86,5 +86,4 @@ class ForYouFragment : Fragment() {
 
 
 
-
 }

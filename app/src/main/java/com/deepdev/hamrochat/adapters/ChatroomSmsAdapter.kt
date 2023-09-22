@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.bumptech.glide.Glide
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.model.ChatroomSmsModel
 import de.hdodenhof.circleimageview.CircleImageView
@@ -42,6 +43,9 @@ class ChatroomSmsAdapter(private val list : ArrayList<ChatroomSmsModel>,
         holder.receiverLayout.visibility = View.VISIBLE
         holder.receiverMessage.text = model.message
         holder.receiverUserName.text = model.authorUsername
+        Glide.with(context).load(model.authorImage)
+            .into(holder.receiverImageView)
+
     }
 
     private fun showSenderLayout(model: ChatroomSmsModel, holder: ChatroomSmsViewHolder) {
@@ -49,9 +53,8 @@ class ChatroomSmsAdapter(private val list : ArrayList<ChatroomSmsModel>,
         holder.senderLayout.visibility = View.VISIBLE
         holder.senderMessage.text = model.message
         holder.senderUserName.text = model.authorUsername
-        if (model.imageUrl == "no"){
-
-        }
+        Glide.with(context).load(model.authorImage)
+            .into(holder.senderImageView)
     }
 
 

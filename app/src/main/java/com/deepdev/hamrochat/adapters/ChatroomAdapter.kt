@@ -7,11 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.activities.ChatroomActivity
 import com.deepdev.hamrochat.model.ChatroomModel
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class ChatroomAdapter (
                                     private val context : Context,
@@ -39,10 +42,26 @@ class ChatroomAdapter (
             intent.putExtra("chatroomName", model.chatroomName)
             context.startActivity(intent)
         }
+        countNumberOfUserChatting(model.chatroomId, holder.countOfUser)
+    }
+
+    private fun countNumberOfUserChatting(chatroomId: String?, countOfUser: TextView) {
+        Firebase.firestore.collection("user_live_in_chatroom").document(chatroomId!!)
+            .collection("users").addSnapshotListener { value, error ->
+                if (error != null){
+                    Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
+                if (value !=null && value.documents.isNotEmpty()){
+                    countOfUser.text = value.documents.size.toString()+" peoples"
+                }else{
+                    countOfUser.visibility = View.INVISIBLE
+                }
+            }
     }
 
     override fun getItemCount(): Int {
-       return list!!.size
+       return if (list?.size ==null) 0 else list.size
     }
 
     class ChatroomViewHolder (item : View) : RecyclerView.ViewHolder(item){
@@ -51,5 +70,6 @@ class ChatroomAdapter (
         val imageProfile : ImageView = item.findViewById(R.id.prof_image)
         val tvWelcomeMessage : TextView = item.findViewById(R.id.tv_welcome_message)
         val btnEnter : ImageView = item.findViewById(R.id.btn_enter)
+        val countOfUser : TextView = item.findViewById(R.id.tv_count_of_user)
     }
 }

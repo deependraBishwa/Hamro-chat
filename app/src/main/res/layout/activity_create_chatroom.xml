@@ -10,6 +10,7 @@
 
     <androidx.appcompat.widget.Toolbar
         android:textSize="18sp"
+        app:navigationIcon="@drawable/ic_back_arrow"
         android:textStyle="bold"
         app:titleTextColor="@color/white"
         android:background="@color/dark_green"
@@ -27,8 +28,9 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/circle_image"
-            android:src="@drawable/demo"
+            android:src="@drawable/ic_image_place_holder"
             app:civ_border_width="2dp"
+            android:scaleType="centerCrop"
             app:civ_border_color="@color/dark_green"
             android:layout_width="100dp"
             android:layout_height="100dp"/>

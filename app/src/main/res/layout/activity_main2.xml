@@ -1,83 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    android:orientation="vertical"
-    android:background="@color/dark_green"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/dark_green"
+    android:orientation="vertical"
     tools:context=".activities.Main2Activity">
 
-    <LinearLayout
-        android:layout_margin="8dp"
-        android:gravity="center_vertical"
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        >
-        <ImageView
-            android:src="@drawable/ic_search"
-            android:layout_width="40dp"
-            android:layout_height="40dp"/>
-        <Space
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"/>
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/img_profile"
-            app:civ_border_width="2dp"
-            app:civ_border_color="@android:color/white"
-            app:civ_border_overlay="true"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginEnd="5dp"
-            android:src="@drawable/demo"/>
-        <ImageView
-            android:id="@+id/menu_image_view"
-            android:src="@drawable/dot_menu"
-            android:layout_width="40dp"
-            android:layout_height="40dp"/>
-    </LinearLayout>
+        app:menu="@menu/menu_main_act"
+        app:title="Hamro chat"
+        app:titleTextColor="@color/white" />
 
-        <RelativeLayout
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_background">
+
+        <com.google.android.material.tabs.TabLayout
             android:background="@drawable/card_background"
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <com.google.android.material.tabs.TabLayout
-                android:layout_margin="5dp"
-                app:tabSelectedTextColor="@color/dark_green"
-                app:tabIndicatorColor="@color/dark_green"
-                app:tabTextColor="#818181"
-                android:id="@+id/tabLayout"
-                app:tabTextAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <com.google.android.material.tabs.TabItem
-                    android:text="sample"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-                <com.google.android.material.tabs.TabItem
-                    android:text="sample"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </com.google.android.material.tabs.TabLayout>
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/viewPager"
-                android:layout_below="@+id/tabLayout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab_create_chat_room"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="20dp"
-                android:layout_marginBottom="20dp"
-                app:backgroundTint="@color/white"
-                android:visibility="invisible"
-                android:src="@drawable/ic_add"
+            android:layout_height="wrap_content"
+            android:elevation="5dp"
+            app:tabIconTint="@color/tab_icon_color_toggle"
+            app:tabIndicatorAnimationMode="fade"
+            app:tabIndicatorColor="@color/dark_green"
+            app:tabSelectedTextColor="@color/dark_green"
+            app:tabTextColor="#818181">
+
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </RelativeLayout>
+                android:layout_height="wrap_content"
+                android:icon="@drawable/ic_home" />
+        </com.google.android.material.tabs.TabLayout>
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/tabLayout" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_create_chat_room"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/ic_add"
+            android:visibility="invisible"
+            app:backgroundTint="@color/white" />
+    </RelativeLayout>
 
 </LinearLayout>

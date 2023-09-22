@@ -52,9 +52,9 @@ class ChatroomFragment : Fragment() {
 
     private fun fetchDataFromFirestore() {
         val db = FirebaseFirestore.getInstance()
-        val chatroomsCollection = db.collection("chatrooms")
+        val chatroomCollection = db.collection("chatrooms")
 
-        chatroomsCollection
+        chatroomCollection
             .get()
             .addOnSuccessListener { querySnapshot ->
                 model.clear()

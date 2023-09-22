@@ -12,6 +12,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class CreateChatroomActivity : AppCompatActivity() {
 
@@ -58,7 +62,6 @@ class CreateChatroomActivity : AppCompatActivity() {
 
         binding.btnCreate.setOnClickListener {
 
-
             val chatroomName = binding.edtChatRoomName.text.toString().trim()
             val country = binding.edtCountry.text.toString().trim()
             val welcomeMessage = binding.edtWelcomeMessage.text.toString().trim()
@@ -81,42 +84,44 @@ class CreateChatroomActivity : AppCompatActivity() {
 
            progressDialog.show()
 
-            val storageRef = FirebaseStorage.getInstance().reference.child("images").child(currentUser)
-            val imageRef = storageRef.child(imageUri!!.lastPathSegment!!)
-            val uploadTask = imageRef.putFile(imageUri!!)
+            CoroutineScope(Dispatchers.IO).launch {
+                val storageRef = FirebaseStorage.getInstance().reference.child("images").child(currentUser)
+                val imageRef = storageRef.child(FieldValue.serverTimestamp().toString())
+                val uploadTask = imageRef.putFile(imageUri!!)
 
-            uploadTask.addOnSuccessListener { uploadTaskSnapshot ->
-                imageRef.downloadUrl.addOnSuccessListener { uri ->
-                    val db = FirebaseFirestore.getInstance()
-                    val chatroomsCollection = db.collection("chatrooms")
+                uploadTask.addOnSuccessListener { uploadTaskSnapshot ->
+                    imageRef.downloadUrl.addOnSuccessListener { uri ->
+                        val db = FirebaseFirestore.getInstance()
+                        val chatroomCollection = db.collection("chatrooms").document()
+                        val chatroomId = chatroomCollection.id
+                        val chatroomCreatedDate = FieldValue.serverTimestamp()
 
-                    val chatroomName = "Your Chatroom Name" // Replace with the actual chatroom name
-                    val country = "Your Country" // Replace with the actual country
-                    val welcomeMessage = "Welcome to the chatroom!" // Replace with the actual welcome message
-                    val chatroomCreatedDate = FieldValue.serverTimestamp()
+                        val chatroomData = hashMapOf(
+                            "chatroomId" to chatroomId ,
+                            "chatroomImage" to uri.toString(),
+                            "chatroomName" to chatroomName,
+                            "country" to country,
+                            "welcomeMessage" to welcomeMessage,
+                            "chatroomCreatedDate" to chatroomCreatedDate,
+                            "adminUid" to currentUser
+                        )
 
-                    val chatroomData = hashMapOf(
-                        "chatroomId" to db.collection("chatrooms").document().id,
-                        "chatroomImage" to uri.toString(),
-                        "chatroomName" to chatroomName,
-                        "country" to country,
-                        "welcomeMessage" to welcomeMessage,
-                        "chatroomCreatedDate" to chatroomCreatedDate,
-                        "adminUid" to currentUser
-                    )
+                        chatroomCollection.set(chatroomData)
+                            .addOnSuccessListener { _ ->
+                                progressDialog.hide()
+                                Toast.makeText(applicationContext, "Successfully created a new chatroom",
+                                    Toast.LENGTH_LONG).show()
+                            }
+                            .addOnFailureListener { exception ->
+                                progressDialog.hide()
+                                Toast.makeText(applicationContext, exception.message, Toast.LENGTH_LONG).show()
+                            }
+                    }
+                }.addOnFailureListener { e ->
+                    progressDialog.hide()
+                    Toast.makeText(applicationContext, e.message, Toast.LENGTH_SHORT).show()
+                }.await()
 
-                    chatroomsCollection.add(chatroomData)
-                        .addOnSuccessListener { documentReference ->
-                            progressDialog.hide()
-                            Toast.makeText(this, "Success", Toast.LENGTH_LONG).show()
-                        }
-                        .addOnFailureListener { exception ->
-                            progressDialog.hide()
-                            Toast.makeText(this, exception.message, Toast.LENGTH_LONG).show()
-                        }
-                }
-            }.addOnFailureListener { e ->
-                Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
             }
 
         }
