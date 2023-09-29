@@ -3,27 +3,27 @@ package com.deepdev.hamrochat.activities
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import com.deepdev.hamrochat.MyApplication
+import androidx.appcompat.content.res.AppCompatResources
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.adapters.ViewPagerAdapter
 import com.deepdev.hamrochat.databinding.ActivityMain2Binding
 import com.deepdev.hamrochat.fragments.ChatroomFragment
 import com.deepdev.hamrochat.fragments.ForYouFragment
 import com.deepdev.hamrochat.fragments.MessagesFragment
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
 
 class Main2Activity : AppCompatActivity() {
 
     private lateinit var onBackPressedCallback : OnBackPressedCallback
     private val binding by lazy { ActivityMain2Binding.inflate(layoutInflater) }
-    private val app by lazy { application as MyApplication }
+    private var lastBackPressTime: Long = 0
+    private lateinit var toast : Toast
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,10 +33,6 @@ class Main2Activity : AppCompatActivity() {
         // change the color of three dot menu to white
         val overflowIcon= binding.toolbar.overflowIcon
         overflowIcon?.setTint(Color.WHITE)
-
-        // current userdata prefetched in myapplication class
-        val userModel = app.getUserData()
-        Log.d("mssss", "onCreate: ${userModel.name}")
 
 
         onBackPressedHandle()
@@ -61,28 +57,20 @@ class Main2Activity : AppCompatActivity() {
     private fun onBackPressedHandle() {
         onBackPressedCallback = object : OnBackPressedCallback(true){
             override fun handleOnBackPressed() {
-
+                onBackButtonPressed()
             }
         }
         onBackPressedDispatcher.addCallback( onBackPressedCallback)
     }
 
-    private fun showBottomDialog() {
-        val bottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
-        val view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_layout,null)
-        bottomSheetDialog.setContentView(view)
-
-
-        bottomSheetDialog.show()
-    }
 
     private fun tabLayoutSetup() {
         val viewPager = binding.viewPager
         val tabLayout = binding.tabLayout
         val adapter = ViewPagerAdapter(this)
-        adapter.addFragment(ForYouFragment(), "", getDrawable(R.drawable.ic_home))
-        adapter.addFragment(ChatroomFragment(), "", getDrawable(R.drawable.ic_chatroom))
-        adapter.addFragment(MessagesFragment(), "", getDrawable(R.drawable.ic_private_chat))
+        adapter.addFragment(ForYouFragment(), "", AppCompatResources.getDrawable(this, R.drawable.ic_home))
+        adapter.addFragment(ChatroomFragment(), "", AppCompatResources.getDrawable(this, R.drawable.ic_chatroom))
+        adapter.addFragment(MessagesFragment(), "", AppCompatResources.getDrawable(this, R.drawable.ic_private_chat))
 
 
         viewPager.adapter = adapter
@@ -92,5 +80,30 @@ class Main2Activity : AppCompatActivity() {
             tab.icon = adapter.fragmentIcons[position]
         }.attach()
 
+    }
+ fun onBackButtonPressed() {
+        val currentTime = System.currentTimeMillis()
+        val timeDiff = currentTime - lastBackPressTime
+
+        if (timeDiff in 0..DOUBLE_BACK_PRESS_INTERVAL) {
+            onBackPressedCallback.remove()
+            cancelToast()
+            onBackPressedDispatcher.onBackPressed()
+        } else {
+            lastBackPressTime = currentTime
+            showToast("Press back again to exit")
+        }
+    }
+
+    private fun showToast(message: String) {
+        toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
+        toast.show()
+    }
+
+    private fun cancelToast(){
+        toast.cancel()
+    }
+    companion object {
+        private const val DOUBLE_BACK_PRESS_INTERVAL = 2000 // Interval for a double back press in milliseconds (e.g., 2000ms or 2 seconds)
     }
 }

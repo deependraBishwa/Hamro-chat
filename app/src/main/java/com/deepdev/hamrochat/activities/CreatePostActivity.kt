@@ -74,12 +74,12 @@ class CreatePostActivity : AppCompatActivity() {
         }
 
         etPostTypingWatcher()
-
     }
 
     private fun uploadImage() {
         CoroutineScope(Dispatchers.IO).launch{
-            val imageRef = FirebaseStorage.getInstance().getReference("images").child(currentUser)
+            val imageRef = FirebaseStorage.getInstance().getReference("images")
+                .child(currentUser)
                 .child(imageUri?.lastPathSegment!!)
 
             val uploadTask = imageRef.putFile(imageUri!!)

@@ -6,7 +6,5 @@ data class ChatroomSmsModel(
     val message: String? = "",
     val timestamp: Any? = FieldValue.serverTimestamp(),
     val authorUid: String? = "",
-    val messageId: String? = "",
-    val authorUsername: String? = "",
-    val authorImage : String?=""
+    val messageId: String? = ""
 )

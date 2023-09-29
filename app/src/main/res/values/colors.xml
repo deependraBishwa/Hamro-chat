@@ -14,4 +14,31 @@
     <color name="orange">#dfa06e</color>
     <color name="brown">#412722</color>
     <color name="dark_green">#134074</color>
+
+    <color name="color1">#FF0000</color> <!-- Red -->
+    <color name="color2">#00FF00</color> <!-- Green -->
+    <color name="color3">#0000FF</color> <!-- Blue -->
+    <color name="color4">#FFA500</color> <!-- Orange -->
+    <color name="color5">#800080</color> <!-- Purple -->
+    <color name="color6">#FFD700</color> <!-- Gold -->
+    <color name="color7">#008080</color> <!-- Teal -->
+    <color name="color8">#FF4500</color> <!-- OrangeRed -->
+    <color name="color9">#9400D3</color> <!-- DarkViolet -->
+    <color name="color10">#00CED1</color> <!-- DarkTurquoise -->
+    <color name="color11">#8A2BE2</color> <!-- BlueViolet -->
+    <color name="color12">#20B2AA</color> <!-- LightSeaGreen -->
+    <color name="color13">#8B008B</color> <!-- DarkMagenta -->
+    <color name="color14">#B8860B</color> <!-- DarkGoldenrod -->
+    <color name="color15">#FF1493</color> <!-- DeepPink -->
+    <color name="color16">#FF4500</color> <!-- OrangeRed -->
+    <color name="color17">#32CD32</color> <!-- LimeGreen -->
+    <color name="color18">#00FA9A</color> <!-- MediumSpringGreen -->
+    <color name="color19">#48D1CC</color> <!-- MediumTurquoise -->
+    <color name="color20">#FF6347</color> <!-- Tomato -->
+    <color name="color21">#00FF7F</color> <!-- SpringGreen -->
+    <color name="color22">#00BFFF</color> <!-- DeepSkyBlue -->
+    <color name="color23">#FF69B4</color> <!-- HotPink -->
+    <color name="color24">#7FFF00</color> <!-- Chartreuse -->
+    <color name="color25">#FF8C00</color> <!-- DarkOrange -->
+    <color name="color26">#DA70D6</color> <!-- Orchid -->
 </resources>

@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,17 +75,19 @@ class ProfileActivity : AppCompatActivity() {
             val uploadTask = imageRef.putFile(imageUri!!)
             uploadTask.addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { uri ->
-                   FirebaseStorage.getInstance().getReferenceFromUrl(userData.imageUrl).delete()
-                       .addOnSuccessListener {
-                       Firebase.firestore.collection("users").document(currentUser)
-                           .update("imageUrl", uri.toString()).addOnSuccessListener {
-                               MyUtils.showToast(applicationContext, "success")
-                               userData.imageUrl = uri.toString()
-                           }.addOnFailureListener {
-                               MyUtils.showToast(applicationContext, "success")
+                    Firebase.firestore.collection("users").document(currentUser)
+                        .update("imageUrl", uri.toString()).addOnSuccessListener {
+                            MyUtils.showToast(applicationContext, "success")
+                            if (uri.toString() != userData.imageUrl){
+                                Firebase.storage.getReferenceFromUrl(userData.imageUrl).delete()
+                            }
+                            userData.imageUrl = uri.toString()
+                        }.addOnFailureListener {
+                            MyUtils.showToast(applicationContext, "success")
 
-                           }
-                   }
+                        }
+
+
                 }
             }.await()
         }

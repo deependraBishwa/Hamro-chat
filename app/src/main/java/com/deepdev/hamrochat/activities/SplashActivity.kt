@@ -10,38 +10,36 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class SplashActivity : AppCompatActivity() {
 
-    private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val currentUser by lazy { firebaseAuth.currentUser!! }
+    private lateinit var firebaseAuth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        firebaseAuth = FirebaseAuth.getInstance()
 
+        val currentUser = firebaseAuth.currentUser
 
-        if (currentUser != null) {
+        if (currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        } else {
             val db = FirebaseFirestore.getInstance()
             val usersCollection = db.collection("users")
 
-            usersCollection.document(currentUser.uid)
-                .get()
-                .addOnSuccessListener { documentSnapshot ->
-                    if (documentSnapshot.exists()) {
-                        // User data exists in Firestore
-                        Toast.makeText(applicationContext, "Successfully logged in", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(applicationContext, Main2Activity::class.java))
-                        finishAffinity()
-                    } else {
-                        // User data does not exist in Firestore
-                        val intent = Intent(applicationContext, GetUserDetail::class.java)
-                        startActivity(intent)
-                    }
+            usersCollection.document(currentUser.uid).get().addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    // User data exists in Firestore
+                    Toast.makeText(applicationContext, "Successfully logged in", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(applicationContext, Main2Activity::class.java))
+                    finishAffinity()
+                } else {
+                    // User data does not exist in Firestore
+                    val intent = Intent(applicationContext, GetUserDetail::class.java)
+                    startActivity(intent)
                 }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(applicationContext, exception.message, Toast.LENGTH_SHORT).show()
-                }
-        } else {
-            // User is not signed in, navigate to the login activity
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            }.addOnFailureListener { exception ->
+                Toast.makeText(applicationContext, exception.message, Toast.LENGTH_SHORT).show()
+            }
         }
 
 

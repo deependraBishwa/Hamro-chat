@@ -12,6 +12,7 @@
     <style name="Theme.HamroChat" parent="Base.Theme.HamroChat" />
 
 
+
     <color name="accent">@color/blue</color>
     <color name="accent_secondary">@color/blue</color>
     <color name="background">@color/violent</color>
@@ -21,8 +22,6 @@
         <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
         <item name="background">@drawable/card_background</item>
     </style>
-
-
 
     //bottomsheet themes
     <style name="BottomSheetStyle" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">

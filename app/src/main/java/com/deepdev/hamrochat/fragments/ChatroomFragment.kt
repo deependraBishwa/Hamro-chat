@@ -8,21 +8,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.activities.CreateChatroomActivity
 import com.deepdev.hamrochat.adapters.ChatroomAdapter
-import com.deepdev.hamrochat.databinding.FragmentChatroomBinding
+import com.deepdev.hamrochat.adapters.ChatroomViewPagerAdapter
+import com.deepdev.hamrochat.databinding.FragmentChatroom2Binding
+import com.deepdev.hamrochat.fragments.subFragments.ChatroomSubFragment
+import com.deepdev.hamrochat.fragments.subFragments.ChatroomSubFragment2
 import com.deepdev.hamrochat.model.ChatroomModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ChatroomFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
     private lateinit var fab: FloatingActionButton
     private var isFabVisible = true
-    private val binding by lazy { FragmentChatroomBinding.inflate(layoutInflater) }
+    private val binding by lazy { FragmentChatroom2Binding.inflate(layoutInflater) }
 
     private lateinit var model : ArrayList<ChatroomModel>
     private lateinit var adapter : ChatroomAdapter
@@ -32,24 +35,40 @@ class ChatroomFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
 
+        val myView = binding.root
         viewPager = requireActivity().findViewById(R.id.viewPager)
         fab = requireActivity().findViewById(R.id.fab_create_chat_room)
         fab.visibility = View.VISIBLE
 
         setUpViewPagerForFab()
 
-        recyclerViewSetup()
+    //    recyclerViewSetup()
 
         fabClick()
+        tabLayoutSetup()
 
 
 
 
 //todo work on chatroom creation
 
-        return binding.root
+        return myView
     }
 
+    private fun tabLayoutSetup() {
+        val viewPager = binding.viewPager
+        val tabLayout = binding.tabLayout
+        val adapter = ChatroomViewPagerAdapter(requireActivity())
+
+        adapter.addFragment(ChatroomSubFragment(),  "chatroom")
+        adapter.addFragment(ChatroomSubFragment2(),  "Recent")
+
+        viewPager.adapter = adapter
+
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = adapter.titles[position].lowercase()
+        }.attach()
+    }
     private fun fetchDataFromFirestore() {
         val db = FirebaseFirestore.getInstance()
         val chatroomCollection = db.collection("chatrooms")
@@ -77,18 +96,18 @@ class ChatroomFragment : Fragment() {
         }
     }
 
-    private fun recyclerViewSetup() {
-
-         model = ArrayList()
-
-
-         adapter = ChatroomAdapter(requireActivity(), model)
-        val layoutManager = LinearLayoutManager(requireActivity())
-
-        binding.chatRoomRecyclerView.adapter = adapter
-        binding.chatRoomRecyclerView.layoutManager = layoutManager
-        fetchDataFromFirestore()
-    }
+//    private fun recyclerViewSetup() {
+//
+//         model = ArrayList()
+//
+//
+//         adapter = ChatroomAdapter(requireActivity(), model)
+//        val layoutManager = LinearLayoutManager(requireActivity())
+//
+//        binding.chatRoomRecyclerView.adapter = adapter
+//        binding.chatRoomRecyclerView.layoutManager = layoutManager
+//        fetchDataFromFirestore()
+//    }
 
     private fun setUpViewPagerForFab() {
 

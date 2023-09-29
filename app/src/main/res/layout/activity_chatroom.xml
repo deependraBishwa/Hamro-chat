@@ -5,59 +5,70 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@color/white"
     android:layout_height="match_parent"
     tools:context=".activities.ChatroomActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        android:background="@color/dark_green"
-        app:title="chatroom name"
-        app:menu="@menu/menu_chatroom_act"
-        app:titleTextColor="@color/white"
-        app:navigationIcon="@drawable/ic_back_arrow"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/dark_green"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_chatroom_act"
+        app:navigationIcon="@drawable/ic_back_arrow"
+        app:title="chatroom name"
+        app:titleTextColor="@color/white" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_chatroom_activity"
-            android:layout_above="@id/card_view"
+            android:background="#E3E5E6"
+            android:layout_above="@id/linearlayout"
             android:layout_width="match_parent"
             android:layout_alignParentTop="true"
-            android:layout_height="wrap_content"/>
-        <androidx.cardview.widget.CardView
-            android:id="@+id/card_view"
-            app:cardElevation="15dp"
+            android:layout_height="match_parent"/>
+        <LinearLayout
+            android:id="@+id/linearlayout"
+            android:gravity="center"
+            android:background="#F4F4F4"
             android:layout_alignParentBottom="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <LinearLayout
-                android:padding="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="5dp"
+                android:layout_margin="10dp"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content">
-                <EditText
-                    android:id="@+id/edt_message_box"
-                    android:layout_marginHorizontal="10dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/search_background"
-                    android:padding="10dp"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"/>
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/btn_send"
-                    android:layout_marginVertical="10dp"
-                    app:backgroundTint="@color/white"
-                    android:rotation="-45"
-                    app:tint="@color/dark_green"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_send"/>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                    <EditText
+                        android:id="@+id/edt_message_box"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_weight="1"
+                        android:background="@color/white"
+                        android:padding="10dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+            </androidx.cardview.widget.CardView>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btn_send"
+                android:layout_marginVertical="10dp"
+                app:backgroundTint="@color/white"
+                android:rotation="-45"
+                android:layout_marginEnd="10dp"
+                app:tint="@color/dark_green"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_send"/>
+        </LinearLayout>
+
     </RelativeLayout>
 
 </LinearLayout>
