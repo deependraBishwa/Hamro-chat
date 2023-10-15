@@ -41,7 +41,7 @@
                 android:background="#d6d6d6"
                 android:padding="5dp"
                 android:text="POST"
-                android:textColor="@color/dark_green"
+                android:textColor="@color/main_accent_color"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -87,14 +87,6 @@
             android:scaleType="centerInside"
             android:layout_width="match_parent"
             android:layout_height="300dp"/>
-        <Button
-            android:id="@+id/btn_add_image"
-            android:layout_margin="8dp"
-            android:text="Add Image"
-            android:backgroundTint="@color/dark_green"
-            android:src="@color/cardview_dark_background"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
 
 </ScrollView>

@@ -23,12 +23,10 @@
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
-                    android:background="@color/dark_green"
+                    android:background="@color/main_accent_color"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
-                    app:menu="@menu/menu_main_act"
-                    app:title="Hamro chat"
-                    app:titleTextColor="@color/white" />
+                    app:menu="@menu/menu_main_act" />
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -37,13 +35,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:elevation="5dp"
+                android:background="@color/main_accent_color"
                 app:layout_anchor="@id/appbar"
                 app:layout_anchorGravity="end|bottom"
-                app:tabIconTint="@color/tab_icon_color_toggle"
-                app:tabIndicatorAnimationMode="fade"
-                app:tabIndicatorColor="@color/dark_green"
-                app:tabSelectedTextColor="@color/dark_green"
-                app:tabTextColor="#818181" />
+                app:tabIconTint="@color/white"
+                app:tabIndicatorAnimationMode="elastic"
+                app:tabIndicatorColor="@color/white"
+                app:tabSelectedTextColor="@color/white"
+                app:tabTextColor="@color/white" >
+                <com.google.android.material.tabs.TabItem
+                    android:text="tab1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </com.google.android.material.tabs.TabLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.viewpager2.widget.ViewPager2

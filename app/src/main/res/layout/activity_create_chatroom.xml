@@ -13,7 +13,7 @@
         app:navigationIcon="@drawable/ic_back_arrow"
         android:textStyle="bold"
         app:titleTextColor="@color/white"
-        android:background="@color/dark_green"
+        android:background="@color/main_accent_color"
         app:title="Create chatroom"
         android:gravity="center_horizontal"
         android:layout_width="match_parent"
@@ -31,13 +31,13 @@
             android:src="@drawable/ic_image_place_holder"
             app:civ_border_width="2dp"
             android:scaleType="centerCrop"
-            app:civ_border_color="@color/dark_green"
+            app:civ_border_color="@color/main_accent_color"
             android:layout_width="100dp"
             android:layout_height="100dp"/>
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/add_image"
-            app:civ_border_color="@color/dark_green"
+            app:civ_border_color="@color/main_accent_color"
             app:civ_border_width="2dp"
             android:layout_width="30dp"
             android:layout_height="30dp"
@@ -60,10 +60,10 @@
         app:counterMaxLength="100"
         app:boxStrokeWidth="2dp"
         app:counterEnabled="true"
-        app:counterTextColor="@color/dark_green"
+        app:counterTextColor="@color/main_accent_color"
         app:endIconMode="clear_text"
-        app:hintTextColor="@color/dark_green"
-        app:boxStrokeColor="@color/dark_green">
+        app:hintTextColor="@color/main_accent_color"
+        app:boxStrokeColor="@color/main_accent_color">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edt_chat_room_name"
             android:layout_width="match_parent"
@@ -77,10 +77,10 @@
         android:hint="country"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         app:boxStrokeWidth="2dp"
-        app:counterTextColor="@color/dark_green"
+        app:counterTextColor="@color/main_accent_color"
         app:endIconMode="clear_text"
-        app:hintTextColor="@color/dark_green"
-        app:boxStrokeColor="@color/dark_green">
+        app:hintTextColor="@color/main_accent_color"
+        app:boxStrokeColor="@color/main_accent_color">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edt_country"
             android:layout_width="match_parent"
@@ -97,10 +97,10 @@
         app:counterMaxLength="200"
         app:boxStrokeWidth="2dp"
         app:endIconMode="clear_text"
-        app:hintTextColor="@color/dark_green"
-        app:boxStrokeColor="@color/dark_green"
+        app:hintTextColor="@color/main_accent_color"
+        app:boxStrokeColor="@color/main_accent_color"
         app:counterEnabled="true"
-        app:counterTextColor="@color/dark_green"
+        app:counterTextColor="@color/main_accent_color"
 
        >
         <com.google.android.material.textfield.TextInputEditText
@@ -111,7 +111,7 @@
     </com.google.android.material.textfield.TextInputLayout>
     <Button
         android:id="@+id/btn_create"
-        android:backgroundTint="@color/dark_green"
+        android:backgroundTint="@color/main_accent_color"
         android:text="Create"
         android:textAllCaps="false"
         android:textStyle="bold"

@@ -2,19 +2,24 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:background="@drawable/tab_layout_background"
-        app:tabIndicatorColor="@color/dark_green"
+        app:tabIndicatorColor="@color/main_accent_color"
+        app:tabSelectedTextColor="@color/main_accent_color"
+        app:tabTextColor="@android:color/darker_gray"
         app:tabIndicatorFullWidth="false"
         app:tabIndicatorAnimationMode="elastic"
+        app:tabTextAppearance="@style/TextAppearance.MaterialComponents.Caption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.tabs.TabItem
-           android:text="hello"
+            android:text="hello"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </com.google.android.material.tabs.TabLayout>

@@ -3,7 +3,6 @@ package com.deepdev.hamrochat.adapters
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,11 +15,11 @@ import com.bumptech.glide.Glide
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.activities.CreateCommentsActivity
 import com.deepdev.hamrochat.model.ForyouModel
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.util.Calendar
-import java.util.TimeZone
 
 class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : RecyclerView.Adapter<ForyouAdapter.ForyouViewHolder>() {
 
@@ -30,12 +29,12 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
     class ForyouViewHolder(itemview: View) : ViewHolder(itemview) {
 
         val tvPost: TextView = itemview.findViewById(R.id.post_text)
-        val ivPost: ImageView = itemview.findViewById(R.id.iv_post_image)
         val btnLike: TextView = itemview.findViewById(R.id.btn_like_post)
         val likeCount: TextView = itemview.findViewById(R.id.like_count)
         val commentCount: TextView = itemview.findViewById(R.id.commentCount)
         val btnComment: TextView = itemview.findViewById(R.id.btn_comment)
         val tvTimestamp: TextView = itemview.findViewById(R.id.tv_time_stamp)
+        val ivAuthorImage: ImageView = itemview.findViewById(R.id.author_image)
 
     }
 
@@ -49,20 +48,17 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
 
     override fun onBindViewHolder(holder: ForyouViewHolder, position: Int) {
         val model = list[position]
-        checkIfPostIsLiked(model.postId!!, holder.btnLike)
+        setAuthorImage(model, holder)
 
-        if (isImageEmpty(model.image)) {
-            Glide.with(context).load(model.image).placeholder(R.drawable.ic_image_place_holder)
-                .into(holder.ivPost)
-        } else {
-            holder.ivPost.visibility = View.GONE
-        }
+        setTimeStamp(model, holder)
+
+        checkIfPostIsLiked(model.postId, holder.btnLike)
+
         holder.tvPost.text = model.text
-        holder.tvTimestamp.text = getDate(model.timestamp?.seconds)
 
 
         holder.btnLike.setOnClickListener {
-            likePost(model.postId!!, holder.btnLike)
+            likePost(model.postId, holder.btnLike)
         }
 
 
@@ -73,53 +69,70 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
             context.startActivity(intent)
         }
 
-         countLikes(holder.likeCount, model.postId)
+        countLikes(holder.likeCount, model.postId)
 
         countComments(holder.commentCount, model.postId)
     }
 
-    private fun getDate(dateCreated: Long?): String {
-        val userTimeZone = TimeZone.getDefault()
-        val currentTime = System.currentTimeMillis()
-        val timeDifference = currentTime - (dateCreated ?: 0)
+    private fun setTimeStamp(model: ForyouModel, holder: ForyouViewHolder) {
 
+        Firebase.firestore.collection("posts").document(model.postId)
+            .get().addOnSuccessListener { document ->
+                val timestamp = document.getTimestamp("timestamp")
+                val formattedTimestamp = formatTimestamp(timestamp!!)
 
-        val commentDate = when {
-            timeDifference < 60 * 1000 -> "a few seconds ago"
-            timeDifference < 60 * 60 * 1000 -> "${timeDifference / (60 * 1000)} minutes ago"
-            timeDifference < 24 * 60 * 60 * 1000 -> "${timeDifference / (60 * 60 * 1000)} hours ago"
-            timeDifference < 365 * 24 * 60 * 60 * 1000 -> {
-                val userCalendar = Calendar.getInstance(userTimeZone)
-                userCalendar.timeInMillis = dateCreated ?: 0
-                val day = userCalendar.get(Calendar.DAY_OF_MONTH)
-                val month = userCalendar.get(Calendar.MONTH) + 1 // Month is zero-based
-                "$month/$day"
+                holder.tvTimestamp.text = formattedTimestamp
             }
-
-            else -> {
-                val userCalendar = Calendar.getInstance(userTimeZone)
-                userCalendar.timeInMillis = dateCreated ?: 0
-                val day = userCalendar.get(Calendar.DAY_OF_MONTH)
-                val month = userCalendar.get(Calendar.MONTH) + 1 // Month is zero-based
-                val year = userCalendar.get(Calendar.YEAR)
-                "$day/$month/$year"
-            }
-        }
-        return commentDate
     }
 
+    fun formatTimestamp(timestamp: Timestamp): String {
+        val currentDate = Calendar.getInstance()
+        val timestampDate = Calendar.getInstance()
+        timestampDate.time = timestamp.toDate()
+
+        val diffInMillis = currentDate.timeInMillis - timestampDate.timeInMillis
+        val seconds = diffInMillis / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
+        val months = days / 30
+        val years = days / 365
+
+        return when {
+            seconds < 60 -> "$seconds seconds ago"
+            minutes < 60 -> "$minutes minutes ago"
+            hours < 24 -> "$hours hours ago"
+            days == 1L -> "Yesterday"
+            days < 30 -> "$days days ago"
+            months < 12 -> "$months months ago"
+            else -> "$years years ago"
+        }
+    }
+
+    private fun setAuthorImage(model: ForyouModel, holder: ForyouViewHolder) {
+
+        Firebase.firestore.collection("users").document(model.authorId)
+            .get().addOnSuccessListener { document ->
+                Glide.with(context).load(document.getString("imageUrl"))
+                    .placeholder(R.drawable.user_place_holder).into(holder.ivAuthorImage)
+            }
+    }
+
+
     private fun countComments(commentCount: TextView, postId: String?) {
-        val comentCountRef = Firebase.firestore.collection("comments").document(postId!!).collection("comment")
+        Firebase.firestore.collection("comments").document(postId!!)
+            .collection("comment")
             .addSnapshotListener { value, error ->
-                if (error !=null){
+                if (error != null) {
                     Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
-                if (value !=null && value.documents.isNotEmpty()){
-                    commentCount.visibility=View.VISIBLE
-                    commentCount.text = value.documents.size.toString()+" Comments"
-                }else{
-                    commentCount.visibility=View.GONE
+                if (value != null && value.documents.isNotEmpty()) {
+                    commentCount.visibility = View.VISIBLE
+                    val commentsCount = "${value.documents.size} Comments"
+                    commentCount.text = commentsCount
+                } else {
+                    commentCount.visibility = View.INVISIBLE
                 }
             }
     }
@@ -131,18 +144,18 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
         val likeCountRef = Firebase.firestore.collection("likes").document(postId!!)
             .collection("like")
 
-            likeCountRef.addSnapshotListener { value, error ->
-                if (error != null){
-                    Toast.makeText(context, error.message , Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-                if (value != null && value.documents.isNotEmpty()){
-                    likeCount.visibility = View.VISIBLE
-                    likeCount.text = value.documents.size.toString()+" Likes"
-                }else{
-                    likeCount.visibility = View.GONE
-                }
+        likeCountRef.addSnapshotListener { value, error ->
+            if (error != null) {
+                Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+                return@addSnapshotListener
             }
+            if (value != null && value.documents.isNotEmpty()) {
+                likeCount.visibility = View.VISIBLE
+                likeCount.text = value.documents.size.toString() + " Likes"
+            } else {
+                likeCount.visibility = View.INVISIBLE
+            }
+        }
 
     }
 
@@ -156,8 +169,9 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
                 btnColorUnliked(btnLike)
 
             } else {
-                likeRef.set(emptyData)
                 btnColorLiked(btnLike)
+                likeRef.set(emptyData)
+
             }
         }
 
@@ -165,28 +179,23 @@ class ForyouAdapter(var list: ArrayList<ForyouModel>, val context: Context) : Re
 
 
     private fun checkIfPostIsLiked(postId: String, btnLike: TextView) {
-        Log.d("checkss", "checkIfPostIsLiked: $postId")
-        val likeRef = Firebase.firestore.collection("likes").document(postId).collection("like")
+
+        val likeRef = Firebase.firestore.collection("likes")
+            .document(postId).collection("like")
             .document(currentUser)
-        likeRef.get().addOnSuccessListener {
-            if (it.exists()){
-               btnColorLiked(btnLike)
-            }else{
+
+        likeRef.addSnapshotListener { value, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            if (value != null && value.exists()) {
+                btnColorLiked(btnLike)
+            } else {
                 btnColorUnliked(btnLike)
             }
         }
     }
 }
-
-
-private fun isImageEmpty(postImage: String?): Boolean {
-    if (postImage != "") {
-        return true
-    }
-    return false
-}
-
-// like counting
 
 private fun btnColorUnliked(btnLike: TextView) {
     btnLike.setTextColor(Color.GRAY)

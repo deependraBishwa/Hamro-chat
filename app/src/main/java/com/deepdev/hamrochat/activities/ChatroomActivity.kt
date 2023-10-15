@@ -8,21 +8,23 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.AbsListView
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.deepdev.hamrochat.MyApplication
+import androidx.recyclerview.widget.RecyclerView.OnScrollListener
 import com.deepdev.hamrochat.R
 import com.deepdev.hamrochat.adapters.ChatroomSmsAdapter
 import com.deepdev.hamrochat.adapters.ChatroomUserAdapter
 import com.deepdev.hamrochat.databinding.ActivityChatroomBinding
 import com.deepdev.hamrochat.model.ChatroomSmsModel
-import com.deepdev.hamrochat.model.UserDataModel
+import com.deepdev.hamrochat.model.User
 import com.deepdev.hamrochat.utils.MyBottomSheetDialog
 import com.deepdev.hamrochat.utils.MyUtils
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -32,49 +34,92 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 
 class ChatroomActivity : AppCompatActivity() {
+    private var isScrolling = false
+    private var isLoading = false
+    private var isLastPage = false
+    private var lastTimeStamp: Timestamp? = null
+    private lateinit var enteredTime: FieldValue
     private var chatroomId: String? = ""
     private var chatroomName: String? = ""
 
-    private lateinit var messageList: ArrayList<ChatroomSmsModel>
+    // message properties
+    private var messageList = ArrayList<ChatroomSmsModel>()
     private lateinit var messageAdapter: ChatroomSmsAdapter
-    private var userList = ArrayList<UserDataModel>()
-    private lateinit var userDataAdapter: ChatroomUserAdapter
 
-    private var mapOfRoomInfo = mutableMapOf<String, Any>()
+    // user who are chatting in the chatroom properties
+    private var userList = ArrayList<User>()
+    private lateinit var userDataAdapter: ChatroomUserAdapter
+    private val firestore by lazy { FirebaseFirestore.getInstance() }
+
 
     private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val currentUser by lazy { firebaseAuth.currentUser?.uid.toString() }
+    private val currentUserUid by lazy { firebaseAuth.currentUser?.uid.toString() }
     private val binding by lazy { ActivityChatroomBinding.inflate(layoutInflater) }
-    private val app by lazy { application as MyApplication }
-    private val userDataModel by lazy { app.getUserData() }
+
+
+    private var currentUser: User? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
 
+        // initially send button is disabled
+        // until it has text
         disableButton()
+
+        // chatroom id through intent
         intent?.let {
             chatroomId = it.getStringExtra("chatroomId")
             chatroomName = it.getStringExtra("chatroomName")
-            userEnterInChatroom()
+            // get entered users information
+            // and save it to chatroom database
+            getCurrentUsersDetails()
+
+            // fetch room info as well
+            getRoomInfo()
+
+            // fetch the list of the users
+            // who are current in chatroom
         }
 
-        getRoomInfo()
+
 
         setToolbar()
+        recyclerViewSetupForMessage()
+
+        listenRealtime()
+
 
         binding.btnSend.setOnClickListener {
+
             sendMessage()
         }
+
         binding.edtMessageBox.addTextChangedListener(textWatcher)
 
 
-        userCurrentlyInRoom()
-        recyclerViewSetupForMessage()
+        //   recyclerViewScrollListener()
+    }
+
+
+    private fun getCurrentUsersDetails() {
+        firestore.collection("users")
+            .document(currentUserUid).get().addOnSuccessListener { documentRef ->
+                documentRef.let {
+                    currentUser = it.toObject(User::class.java)
+                    currentUser?.let {
+
+                        // when user enter in chatroom save
+                        // user detail to chatroom database
+                        userEnterInChatroom(it)
+                    }
+                }
+            }
 
     }
 
@@ -91,50 +136,24 @@ class ChatroomActivity : AppCompatActivity() {
             }
     }
 
-    private fun userCurrentlyInRoom() {
-        val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
-            .document(chatroomId!!).collection("users")
-        userInChatRef.addSnapshotListener { value, error ->
-            if (error != null) {
-                MyUtils.showToast(this, error.message.toString())
-                return@addSnapshotListener
-            }
-            if (value != null && !value.isEmpty) {
-                userList.clear()
-                for (document in value.documents) {
-                    val dob = document.getString("dateOfBirth").toString()
-                    val gender = document.getString("gender").toString()
-                    val imageUrl = document.getString("imageUrl").toString()
-                    val name = document.getString("name").toString()
-                    val username = document.getString("username").toString()
-                    val uid = document.getString("uid").toString()
-                    val userModel = UserDataModel(dob, gender, imageUrl, name, uid, username)
-                    userList.add(userModel)
 
-//                    val admin =userList.firstOrNull { it.username == mapOfRoomInfo["admin"]}
-//                    if (admin != null){
-//                        userList.remove(admin)
-//                        userList.add(0, admin)
-//                    }
 
-                }
-            }
-        }
-    }
-
-    private fun userEnterInChatroom() {
+    private fun userEnterInChatroom(currentUser: User) {
         CoroutineScope(Dispatchers.IO).launch {
+
+            enteredTime = FieldValue.serverTimestamp()
+
             val userdata = mutableMapOf(
-                "dateOfBirth" to app.getUserData().dateOfBirth,
-                "gender" to app.getUserData().gender,
-                "imageUrl" to app.getUserData().imageUrl,
-                "join_date" to "",
-                "name" to app.getUserData().uid,
-                "username" to app.getUserData().username,
-                "uid" to app.getUserData().uid
+                "dateOfBirth" to currentUser.dateOfBirth,
+                "gender" to currentUser.gender,
+                "imageUrl" to currentUser.imageUrl,
+                "join_date" to enteredTime,
+                "name" to currentUser.name,
+                "username" to currentUser.username,
+                "uid" to currentUserUid
             )
             val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
-                .document(chatroomId!!).collection("users").document(currentUser)
+                .document(chatroomId!!).collection("users").document(currentUserUid)
             userInChatRef.set(userdata.toMap())
 
 
@@ -151,44 +170,111 @@ class ChatroomActivity : AppCompatActivity() {
         overflowIcon?.setTint(ContextCompat.getColor(this, R.color.white))
     }
 
+
+
     private fun recyclerViewSetupForMessage() {
-        messageList = ArrayList()
-        messageAdapter = ChatroomSmsAdapter(messageList, applicationContext, currentUser)
-        val layoutManager = LinearLayoutManager(this)
+        messageAdapter = ChatroomSmsAdapter(messageList, applicationContext, currentUserUid)
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         binding.recyclerChatroomActivity.adapter = messageAdapter
         binding.recyclerChatroomActivity.layoutManager = layoutManager
 
-        fetchData()
+
+
+        binding.recyclerChatroomActivity.addOnScrollListener(object : OnScrollListener(){
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL){
+                    isScrolling = true
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val scrolledItem = layoutManager.findFirstVisibleItemPosition()
+                val totalItem = layoutManager.itemCount
+                val visibleItem = layoutManager.childCount
+                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+                Log.d("gunda", "scrolled: $scrolledItem")
+                Log.d("gunda", "item: $totalItem")
+                Log.d("gunda", "visible: $lastVisibleItem")
+                Log.d("gunda", "visibleItem: $visibleItem")
+
+                if (isScrolling && !isLoading && !isLastPage &&
+                    totalItem <= (scrolledItem+lastVisibleItem)){
+                    isLoading = true
+                    MyUtils.showToast(applicationContext, "Loading..")
+                    getPreviousMessages()
+                }
+            }
+        })
 
     }
 
-    private fun fetchData() {
-        val db = FirebaseFirestore.getInstance()
-        val messagesCollection = db.collection("messages").document(chatroomId!!).collection("chats")
+    private fun getPreviousMessages(){
 
-        messagesCollection
-            .orderBy("timestamp", Query.Direction.ASCENDING) // Order by timestamp in ascending order
-            .addSnapshotListener { querySnapshot, error ->
-                if (error != null) {
-                    // Handle the error
-                    return@addSnapshotListener
+        firestore.collection("messages")
+            .document(chatroomId!!)
+            .collection("chats")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .startAfter(lastTimeStamp)
+            .limit(15)
+            .get().addOnSuccessListener {
+                documentRef ->
+                isLoading = false
+                if (documentRef.isEmpty){
+                    isLastPage = true
+                    MyUtils.showToast(applicationContext, "no more data found")
+                    return@addOnSuccessListener
                 }
 
-                messageList.clear()
+                if(lastTimeStamp != null){
+                    lastTimeStamp = documentRef.documents[documentRef.documents.size - 1].getTimestamp("timestamp")
+                }
+                documentRef?.let {
 
-                if (querySnapshot != null) {
-                    for (document in querySnapshot.documents) {
-                        val sms = document.toObject(ChatroomSmsModel::class.java)
-                        Log.d("msgs", "fetchData: ${sms?.message}")
-                        sms?.let { messageList.add(it) }
+                    for (sms in documentRef.documents){
+                        val message = sms.toObject(ChatroomSmsModel::class.java)
+                        message?.let {
+                            messageList.add(it)
+                        }
                     }
-
                     messageAdapter.notifyDataSetChanged()
                 }
-
-                // Scroll to the last item in the RecyclerView
-                binding.recyclerChatroomActivity.scrollToPosition(messageList.size - 1)
             }
+    }
+    private fun listenRealtime() {
+        if (chatroomId == null) return
+
+        val query = firestore.collection("messages")
+            .document(chatroomId!!)
+            .collection("chats")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(15)
+
+
+        query.addSnapshotListener { querySnapshot, error ->
+
+            if (error != null) {
+                return@addSnapshotListener
+            }
+
+            if (querySnapshot != null && !querySnapshot.isEmpty) {
+                isLastPage = false
+                    lastTimeStamp = querySnapshot.documents[querySnapshot.documents.size -1].getTimestamp("timestamp")
+                messageList.clear()
+                for (sms in querySnapshot.documents) {
+                    sms.toObject(ChatroomSmsModel::class.java)
+                        ?.let { it1 ->
+                            messageList.add(it1)
+                            Log.d("hello", "listenRealtime: ${it1.message}")
+
+                        }
+                }
+                messageAdapter.notifyDataSetChanged()
+            }
+        }
     }
 
 
@@ -218,7 +304,7 @@ class ChatroomActivity : AppCompatActivity() {
 
     private fun enableButton() {
         binding.btnSend.isEnabled = true
-        binding.btnSend.drawable?.setTint(ContextCompat.getColor(this, R.color.dark_green))
+        binding.btnSend.drawable?.setTint(ContextCompat.getColor(this, R.color.main_accent_color))
     }
 
     private fun sendMessage() {
@@ -226,12 +312,12 @@ class ChatroomActivity : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
         val messagesCollection = db.collection("messages")
             .document(chatroomId!!).collection("chats")
+        val messageId = messagesCollection.id
 
         val text = binding.edtMessageBox.text.toString().trim()
         val timestamp = FieldValue.serverTimestamp()
-        val authorUid = currentUser
-        val messageId = UUID.randomUUID().toString() // Use a unique ID for each message
-        binding.recyclerChatroomActivity.scrollToPosition(messageAdapter.itemCount - 1)
+        val authorUid = currentUserUid
+
         binding.edtMessageBox.setText("")
         val messageObj = hashMapOf(
             "message" to text,
@@ -256,7 +342,7 @@ class ChatroomActivity : AppCompatActivity() {
     override fun onDestroy() {
         val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
             .document(chatroomId!!)
-            .collection("users").document(currentUser)
+            .collection("users").document(currentUserUid)
 
         userInChatRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
@@ -280,15 +366,8 @@ class ChatroomActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_chat_activity, null)
 
         val btnClose = view.findViewById<ImageView>(R.id.image_close)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view)
-        userDataAdapter = ChatroomUserAdapter(userList, this)
-        val manager = LinearLayoutManager(this)
 
-        recyclerView.layoutManager = manager
-        recyclerView.adapter = userDataAdapter
-
-
-        val bottomSheet = MyBottomSheetDialog(view)
+        val bottomSheet = MyBottomSheetDialog(chatroomId!!)
         bottomSheet.show(supportFragmentManager, bottomSheet.tag)
         btnClose.setOnClickListener { bottomSheet.dismiss() }
     }
@@ -298,5 +377,6 @@ class ChatroomActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.menu_chatroom_act, menu)
         return super.onCreateOptionsMenu(menu)
     }
+
 }
 

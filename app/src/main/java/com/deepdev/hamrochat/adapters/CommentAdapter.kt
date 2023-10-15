@@ -14,6 +14,7 @@ import com.deepdev.hamrochat.model.CommentModel
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.util.Calendar
+import java.util.Locale
 import java.util.TimeZone
 
 
@@ -89,9 +90,9 @@ class CommentAdapter(private val list : ArrayList<CommentModel>, private val con
             .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
                     val name = documentSnapshot.getString("name") ?: ""
-                    val image = documentSnapshot.getString("image") ?: ""
+                    val image = documentSnapshot.getString("imageUrl") ?: ""
 
-                    holder.tvName.text = name
+                    holder.tvName.text = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
                     Glide.with(context).load(image).placeholder(R.drawable.user_place_holder).into(holder.authorImage)
                 }
             }

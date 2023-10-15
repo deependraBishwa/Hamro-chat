@@ -53,20 +53,20 @@ class CreateCommentsActivity : AppCompatActivity() {
     private fun fetchComments() {
         val commentRef = Firebase.firestore.collection("comments").document(postId)
             .collection("comment")
-            commentRef.addSnapshotListener { value, error ->
-                if (error != null) {
-                    Toast.makeText(applicationContext, error.message, Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-                if (value != null && value.documents.isNotEmpty()) {
-                    commentsList.clear()
-                    for (document in value.documents) {
-                        val comment = document.toObject(CommentModel::class.java)
-                        commentsList.add(comment!!)
-                    }
-                    commentAdapter.notifyDataSetChanged()
-                }
+        commentRef.addSnapshotListener { value, error ->
+            if (error != null) {
+                Toast.makeText(applicationContext, error.message, Toast.LENGTH_SHORT).show()
+                return@addSnapshotListener
             }
+            if (value != null && value.documents.isNotEmpty()) {
+                commentsList.clear()
+                for (document in value.documents) {
+                    val comment = document.toObject(CommentModel::class.java)
+                    commentsList.add(comment!!)
+                }
+                commentAdapter.notifyDataSetChanged()
+            }
+        }
 
         progressBar.hide()
     }
@@ -110,7 +110,7 @@ class CreateCommentsActivity : AppCompatActivity() {
 
     private fun buttonSendEnabled() {
         binding.btnSendComment.isEnabled = true
-        binding.btnSendComment.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_green))
+        binding.btnSendComment.setBackgroundColor(ContextCompat.getColor(this, R.color.main_accent_color))
     }
 
     private fun buttonSendDisabled() {

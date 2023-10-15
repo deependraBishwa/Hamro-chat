@@ -6,7 +6,7 @@
 
 
 <!--        to change the color of the all the item in the toolbar -->
-        <item name="android:statusBarColor">@color/dark_green</item>
+        <item name="android:statusBarColor">@color/main_accent_color</item>
     </style>
 
     <style name="Theme.HamroChat" parent="Base.Theme.HamroChat" />

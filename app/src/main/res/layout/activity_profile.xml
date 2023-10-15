@@ -12,7 +12,7 @@
         android:id="@+id/toolbar"
         app:titleTextColor="@color/white"
         app:title="Profile"
-        android:background="@color/dark_green"
+        android:background="@color/main_accent_color"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"

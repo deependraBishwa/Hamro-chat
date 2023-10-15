@@ -37,7 +37,7 @@
                 android:layout_marginHorizontal="20dp"
                 app:boxStrokeColor="@color/gray"
                 app:boxStrokeWidth="2dp"
-                app:hintTextColor="@color/dark_green"
+                app:hintTextColor="@color/main_accent_color"
                 app:endIconMode="clear_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -54,7 +54,7 @@
                 android:layout_marginHorizontal="20dp"
                 app:boxStrokeColor="@color/gray"
                 app:boxStrokeWidth="2dp"
-                app:hintTextColor="@color/dark_green"
+                app:hintTextColor="@color/main_accent_color"
                 app:endIconMode="clear_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -75,7 +75,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     app:boxStrokeColor="@color/gray"
                     app:boxStrokeWidth="2dp"
-                    app:hintTextColor="@color/dark_green"
+                    app:hintTextColor="@color/main_accent_color"
                     app:endIconMode="clear_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
@@ -114,7 +114,7 @@
                 android:id="@+id/btn_submit"
                 android:text="submit"
                 android:layout_margin="20dp"
-                android:backgroundTint="@color/dark_green"
+                android:backgroundTint="@color/main_accent_color"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
         </LinearLayout>

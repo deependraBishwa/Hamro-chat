@@ -13,7 +13,7 @@
     <color name="yellow">#f5f3bb</color>
     <color name="orange">#dfa06e</color>
     <color name="brown">#412722</color>
-    <color name="dark_green">#134074</color>
+    <color name="main_accent_color">#00BFFF</color>
 
     <color name="color1">#FF0000</color> <!-- Red -->
     <color name="color2">#00FF00</color> <!-- Green -->

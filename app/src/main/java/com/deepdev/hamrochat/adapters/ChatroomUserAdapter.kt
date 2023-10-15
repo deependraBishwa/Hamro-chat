@@ -8,11 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.deepdev.hamrochat.R
-import com.deepdev.hamrochat.model.UserDataModel
+import com.deepdev.hamrochat.model.User
 import de.hdodenhof.circleimageview.CircleImageView
 
-class ChatroomUserAdapter(private var listOfUser : ArrayList<UserDataModel>,
-    private val context : Context)
+
+class ChatroomUserAdapter(private var listOfUser : ArrayList<User>,
+                          private val context : Context)
     : RecyclerView.Adapter<ChatroomUserAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(LayoutInflater.from(context).inflate(R.layout.item_bottom_sheet_chat_activity
@@ -31,9 +32,11 @@ class ChatroomUserAdapter(private var listOfUser : ArrayList<UserDataModel>,
         }
     }
 
-    fun setData(list : ArrayList<UserDataModel>){
+    fun setData(list : ArrayList<User>){
+
         this.listOfUser = list
         notifyDataSetChanged()
+
     }
     override fun getItemCount(): Int = if(listOfUser.size == null) 0 else listOfUser.size
     class ViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView){

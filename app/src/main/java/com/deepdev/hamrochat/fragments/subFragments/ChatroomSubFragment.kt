@@ -5,17 +5,59 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.deepdev.hamrochat.R
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.deepdev.hamrochat.adapters.ChatroomAdapter
+import com.deepdev.hamrochat.databinding.FragmentChatroomSubBinding
+import com.deepdev.hamrochat.model.ChatroomModel
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class ChatroomSubFragment : Fragment() {
-
+    private lateinit var model : ArrayList<ChatroomModel>
+    private lateinit var adapter : ChatroomAdapter
+    private val binding by lazy { FragmentChatroomSubBinding.inflate(layoutInflater) }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chatroom_sub, container, false)
-    }
 
+        val view = binding.root
+
+
+        recyclerViewSetup()
+
+
+        return view
+    }
+    private fun fetchDataFromFirestore() {
+        val db = FirebaseFirestore.getInstance()
+        val chatroomCollection = db.collection("chatrooms")
+
+        chatroomCollection
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                model.clear()
+                for (document in querySnapshot.documents) {
+                    val chatroom = document.toObject(ChatroomModel::class.java)
+                    chatroom?.let { model.add(it) }
+                }
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                // Handle any errors that may occur during the fetch
+            }
+    }
+    private fun recyclerViewSetup() {
+
+        model = ArrayList()
+
+
+        adapter = ChatroomAdapter(requireActivity(), model)
+        val layoutManager = LinearLayoutManager(requireActivity())
+
+        binding.chatRoomRecyclerView.adapter = adapter
+        binding.chatRoomRecyclerView.layoutManager = layoutManager
+        fetchDataFromFirestore()
+    }
 }

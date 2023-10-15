@@ -14,6 +14,7 @@ import com.deepdev.hamrochat.model.ForyouModel
 import com.deepdev.hamrochat.utils.MyProgressDialog
 import com.deepdev.hamrochat.utils.MyUtils
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 
 class ForYouFragment : Fragment() {
@@ -59,23 +60,25 @@ class ForYouFragment : Fragment() {
     private fun fetchDataFromFirebase() {
 
         progressDialog.show()
-        firestore.collection("posts").addSnapshotListener { snapshot, error ->
+        firestore.collection("posts")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
 
-            if (error !=null){
-                MyUtils.showToast(requireActivity(), error.message.toString())
-                return@addSnapshotListener
-            }
-            if (snapshot !=null && !snapshot.isEmpty){
-                posts.clear()
-                for (document in snapshot.documents){
-                    val post = document.toObject(ForyouModel::class.java)
-                    posts.add(post!!)
+                if (error != null) {
+                    MyUtils.showToast(requireActivity(), error.message.toString())
+                    return@addSnapshotListener
                 }
-                notifyAdapter()
-            }else{
-                progressDialog.hide()
+                if (snapshot != null && !snapshot.isEmpty) {
+                    posts.clear()
+                    for (document in snapshot.documents) {
+                        val post = document.toObject(ForyouModel::class.java)
+                        posts.add(post!!)
+                    }
+                    notifyAdapter()
+                } else {
+                    progressDialog.hide()
+                }
             }
-        }
 
     }
 
@@ -83,7 +86,6 @@ class ForYouFragment : Fragment() {
         foryouPostsAdapter.notifyDataSetChanged()
         progressDialog.hide()
     }
-
 
 
 }
