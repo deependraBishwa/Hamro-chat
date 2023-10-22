@@ -13,7 +13,7 @@
         android:id="@+id/cv_user_image"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/ic_user_male"
+        android:src="@drawable/user_place_holder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -30,18 +30,30 @@
         app:layout_constraintStart_toEndOf="@+id/cv_user_image"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:layout_marginEnd="5dp"
-        android:padding="5dp"
-        android:background="@drawable/ripple_text_view"
-        android:id="@+id/btn_add"
-        android:textColor="@color/white"
+    <RelativeLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:text="add"
-        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" >
+
+
+        <Button
+            android:id="@+id/btn_add_as_friend"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center_vertical"
+            android:backgroundTint="@color/color17"
+            android:gravity="center"
+            android:padding="0dp"
+            android:text="-"
+            android:enabled="false"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.deepdev.hamrochat.adapters.ChatroomAdapter
 import com.deepdev.hamrochat.databinding.FragmentChatroomSubBinding
 import com.deepdev.hamrochat.model.ChatroomModel
+import com.deepdev.hamrochat.utils.MyUtils
 import com.google.firebase.firestore.FirebaseFirestore
 
 
@@ -24,6 +25,7 @@ class ChatroomSubFragment : Fragment() {
 
         val view = binding.root
 
+        binding.progressBar.visibility = View.VISIBLE
 
         recyclerViewSetup()
 
@@ -42,10 +44,11 @@ class ChatroomSubFragment : Fragment() {
                     val chatroom = document.toObject(ChatroomModel::class.java)
                     chatroom?.let { model.add(it) }
                 }
+                binding.progressBar.visibility = View.GONE
                 adapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
-                // Handle any errors that may occur during the fetch
+                MyUtils.showToast(requireActivity() , exception.message.toString())
             }
     }
     private fun recyclerViewSetup() {

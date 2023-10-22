@@ -71,7 +71,8 @@ class GetUserDetail : AppCompatActivity() {
                 "name" to name,
                 "username" to username,
                 "dateOfBirth" to dateOfBirth,
-                "gender" to gender
+                "gender" to gender,
+                "imageUrl" to ""
             )
 
 

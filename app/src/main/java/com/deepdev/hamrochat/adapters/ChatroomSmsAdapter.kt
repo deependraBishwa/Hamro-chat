@@ -46,8 +46,7 @@ class ChatroomSmsAdapter(private val list : ArrayList<ChatroomSmsModel>,
     private fun showReceiverLayout(model: ChatroomSmsModel, holder: ChatroomSmsViewHolder) {
         holder.receiverCard.visibility = View.VISIBLE
         holder.senderCard.visibility = View.GONE
-        holder.senderLayout.visibility = View.GONE
-        holder.receiverLayout.visibility = View.VISIBLE
+
         holder.receiverMessage.text = model.message
 
         Firebase.firestore.collection("users").document(model.authorUid.toString())
@@ -78,8 +77,6 @@ class ChatroomSmsAdapter(private val list : ArrayList<ChatroomSmsModel>,
     private fun showSenderLayout(model: ChatroomSmsModel, holder: ChatroomSmsViewHolder) {
         holder.receiverCard.visibility = View.GONE
         holder.senderCard.visibility = View.VISIBLE
-        holder.receiverLayout.visibility = View.GONE
-        holder.senderLayout.visibility = View.VISIBLE
         holder.senderMessage.text = model.message
 
         Firebase.firestore.collection("users")

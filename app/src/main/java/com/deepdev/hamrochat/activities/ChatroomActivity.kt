@@ -8,9 +8,16 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.AbsListView
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,8 +29,9 @@ import com.deepdev.hamrochat.adapters.ChatroomUserAdapter
 import com.deepdev.hamrochat.databinding.ActivityChatroomBinding
 import com.deepdev.hamrochat.model.ChatroomSmsModel
 import com.deepdev.hamrochat.model.User
-import com.deepdev.hamrochat.utils.MyBottomSheetDialog
 import com.deepdev.hamrochat.utils.MyUtils
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -33,10 +41,14 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 
 
-class ChatroomActivity : AppCompatActivity() {
+class ChatroomActivity() : AppCompatActivity() {
     private var isScrolling = false
     private var isLoading = false
     private var isLastPage = false
@@ -60,70 +72,134 @@ class ChatroomActivity : AppCompatActivity() {
     private val binding by lazy { ActivityChatroomBinding.inflate(layoutInflater) }
 
 
-    private var currentUser: User? = null
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-
+        setToolbar()
+        recyclerViewSetupForMessage()
         // initially send button is disabled
         // until it has text
         disableButton()
-
         // chatroom id through intent
         intent?.let {
             chatroomId = it.getStringExtra("chatroomId")
             chatroomName = it.getStringExtra("chatroomName")
             // get entered users information
             // and save it to chatroom database
-            getCurrentUsersDetails()
 
-            // fetch room info as well
-            getRoomInfo()
-
-            // fetch the list of the users
-            // who are current in chatroom
         }
 
 
+        // save data related to chatroom and users
+        // asynchronously
+        saveAndFetchInformation()
 
-        setToolbar()
-        recyclerViewSetupForMessage()
 
+        // when database is updates
+        // fetch data
         listenRealtime()
 
+        //when send button is clicked
+        whenSendButtonClicked()
 
+        // update send button according to
+        // edittext
+        editTextTextWatcher()
+
+        // handle onBack press
+        handleBackPressed()
+
+    }
+
+    private fun saveAndFetchInformation() {
+        runBlocking {
+            withTimeout(10000){
+                try {
+                    async { getUsersDetail(currentUserUid) }
+                    async { getRoomInfo() }.await()
+                    async { addToCurrentUsersRecentVisitedChatroomList() }.await()
+                }catch (e : TimeoutCancellationException)
+                {
+                    MyUtils.showToast(applicationContext, e.message.toString())
+                    e.printStackTrace()
+                    finish()
+                }
+
+            }
+        }
+    }
+
+    private fun whenSendButtonClicked() {
         binding.btnSend.setOnClickListener {
-
             sendMessage()
         }
-
-        binding.edtMessageBox.addTextChangedListener(textWatcher)
-
-
-        //   recyclerViewScrollListener()
     }
 
+    private fun editTextTextWatcher() {
+        binding.edtMessageBox.addTextChangedListener(textWatcher)
+    }
 
-    private fun getCurrentUsersDetails() {
-        firestore.collection("users")
-            .document(currentUserUid).get().addOnSuccessListener { documentRef ->
-                documentRef.let {
-                    currentUser = it.toObject(User::class.java)
-                    currentUser?.let {
+    private fun handleBackPressed() {
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
+    }
 
-                        // when user enter in chatroom save
-                        // user detail to chatroom database
-                        userEnterInChatroom(it)
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            showAlertDialog()
+        }
+
+    }
+
+    private fun showAlertDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Exit chatroom ?")
+        builder.setMessage("if you leave the room you can not see older message again.")
+        builder.setPositiveButton(
+            "Yes"
+        ) { dialog, _ ->
+            dialog.dismiss()
+            finish()
+            onBackPressedCallback.remove()
+        }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
+            }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun addToCurrentUsersRecentVisitedChatroomList() {
+                val hashMap = hashMapOf(
+                    "chatroomId" to chatroomId,
+                    "joined_time" to FieldValue.serverTimestamp()
+                )
+                val recentJoinedChatroomRef = Firebase.firestore.collection("users")
+                    .document(currentUserUid)
+                    .collection("recent_chatroom").document(chatroomId!!)
+
+                recentJoinedChatroomRef.get().addOnSuccessListener { documentRef ->
+                    if (!documentRef.exists()) {
+                        recentJoinedChatroomRef.set(hashMap)
+                            .addOnSuccessListener {
+
+                               binding.recyclerChatroomActivity.visibility = VISIBLE
+                            }
+                    } else {
+                        recentJoinedChatroomRef.update(hashMap)
+                            .addOnSuccessListener {
+                               binding.recyclerChatroomActivity.visibility = VISIBLE
+
+                            }
                     }
                 }
-            }
+
 
     }
 
+
     private fun getRoomInfo() {
+
         Firebase.firestore.collection("chatrooms").document(chatroomId!!)
             .addSnapshotListener { value, error ->
                 if (error != null) {
@@ -132,32 +208,57 @@ class ChatroomActivity : AppCompatActivity() {
                 }
                 if (value != null && value.exists()) {
 
+
                 }
             }
     }
 
 
-
-    private fun userEnterInChatroom(currentUser: User) {
-        CoroutineScope(Dispatchers.IO).launch {
-
-            enteredTime = FieldValue.serverTimestamp()
-
-            val userdata = mutableMapOf(
-                "dateOfBirth" to currentUser.dateOfBirth,
-                "gender" to currentUser.gender,
-                "imageUrl" to currentUser.imageUrl,
-                "join_date" to enteredTime,
-                "name" to currentUser.name,
-                "username" to currentUser.username,
-                "uid" to currentUserUid
-            )
-            val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
-                .document(chatroomId!!).collection("users").document(currentUserUid)
-            userInChatRef.set(userdata.toMap())
+    private fun userEnterInChatroom(userDetail : User) {
 
 
-        }
+                enteredTime = FieldValue.serverTimestamp()
+
+                val userdata = mutableMapOf(
+                    "dateOfBirth" to userDetail.dateOfBirth,
+                    "gender" to userDetail.gender,
+                    "imageUrl" to userDetail.imageUrl,
+                    "name" to userDetail.name,
+                    "username" to userDetail.username,
+                    "uid" to userDetail.uid,
+                    "join_time_stamp" to enteredTime
+                )
+                val userInChatRef = Firebase.firestore.collection("chatrooms")
+                    .document(chatroomId!!).collection("current_users").document(currentUserUid)
+                userInChatRef.set(userdata.toMap()).addOnSuccessListener {
+                    Log.d("taskfinish", "onCreate: enter")
+
+                }.addOnFailureListener {
+                    MyUtils.showToast(applicationContext, it.message.toString())
+                    userInChatRef.delete()
+                }
+
+    }
+
+    private fun getUsersDetail(currentUserId: String) {
+
+        Firebase.firestore.collection("users")
+            .document(currentUserId)
+            .get().addOnSuccessListener { documentRef ->
+
+                val name = documentRef.getString("name") ?: ""
+                val dob = documentRef.getString("dateOfBirth") ?: ""
+                val gender = documentRef.getString("gender") ?: ""
+                val imageUrl = documentRef.getString("imageUrl") ?: ""
+                val uid = documentRef.getString("uid") ?: ""
+                val username = documentRef.getString("username") ?: ""
+
+                val user = User(dob, gender, imageUrl, name, uid, username)
+
+                Log.d("chatroomid", "getUsersDetail: $chatroomId")
+                userEnterInChatroom(user)
+
+            }
     }
 
 
@@ -171,7 +272,6 @@ class ChatroomActivity : AppCompatActivity() {
     }
 
 
-
     private fun recyclerViewSetupForMessage() {
         messageAdapter = ChatroomSmsAdapter(messageList, applicationContext, currentUserUid)
         val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -180,11 +280,11 @@ class ChatroomActivity : AppCompatActivity() {
 
 
 
-        binding.recyclerChatroomActivity.addOnScrollListener(object : OnScrollListener(){
+        binding.recyclerChatroomActivity.addOnScrollListener(object : OnScrollListener() {
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL){
+                if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
                     isScrolling = true
                 }
             }
@@ -194,15 +294,13 @@ class ChatroomActivity : AppCompatActivity() {
 
                 val scrolledItem = layoutManager.findFirstVisibleItemPosition()
                 val totalItem = layoutManager.itemCount
-                val visibleItem = layoutManager.childCount
                 val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-                Log.d("gunda", "scrolled: $scrolledItem")
-                Log.d("gunda", "item: $totalItem")
-                Log.d("gunda", "visible: $lastVisibleItem")
-                Log.d("gunda", "visibleItem: $visibleItem")
 
+
+                //   Log.d("checkks", "onScrolled $totalItem = $scrolledItem  + $lastVisibleItem))}")
                 if (isScrolling && !isLoading && !isLastPage &&
-                    totalItem <= (scrolledItem+lastVisibleItem)){
+                    totalItem <= (scrolledItem + lastVisibleItem)
+                ) {
                     isLoading = true
                     MyUtils.showToast(applicationContext, "Loading..")
                     getPreviousMessages()
@@ -212,44 +310,49 @@ class ChatroomActivity : AppCompatActivity() {
 
     }
 
-    private fun getPreviousMessages(){
+    private fun getPreviousMessages() {
 
-        firestore.collection("messages")
+        binding.progressBar.visibility = View.VISIBLE
+        firestore.collection("chatrooms")
             .document(chatroomId!!)
-            .collection("chats")
+            .collection("messages")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .startAfter(lastTimeStamp)
             .limit(15)
-            .get().addOnSuccessListener {
-                documentRef ->
+            .get().addOnSuccessListener { documentRef ->
                 isLoading = false
-                if (documentRef.isEmpty){
+                if (documentRef.isEmpty) {
                     isLastPage = true
+                    binding.progressBar.visibility = View.GONE
                     MyUtils.showToast(applicationContext, "no more data found")
                     return@addOnSuccessListener
                 }
 
-                if(lastTimeStamp != null){
+                if (lastTimeStamp != null) {
                     lastTimeStamp = documentRef.documents[documentRef.documents.size - 1].getTimestamp("timestamp")
                 }
                 documentRef?.let {
 
-                    for (sms in documentRef.documents){
+                    for (sms in documentRef.documents) {
                         val message = sms.toObject(ChatroomSmsModel::class.java)
                         message?.let {
                             messageList.add(it)
                         }
                     }
+
+                    binding.progressBar.visibility = View.VISIBLE
                     messageAdapter.notifyDataSetChanged()
                 }
             }
     }
+
     private fun listenRealtime() {
         if (chatroomId == null) return
 
-        val query = firestore.collection("messages")
+
+        val query = firestore.collection("chatrooms")
             .document(chatroomId!!)
-            .collection("chats")
+            .collection("messages")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .limit(15)
 
@@ -257,22 +360,29 @@ class ChatroomActivity : AppCompatActivity() {
         query.addSnapshotListener { querySnapshot, error ->
 
             if (error != null) {
+                if (binding.progressBar.visibility == View.VISIBLE) {
+                    binding.progressBar.visibility = View.GONE
+                }
                 return@addSnapshotListener
             }
 
             if (querySnapshot != null && !querySnapshot.isEmpty) {
-                isLastPage = false
-                    lastTimeStamp = querySnapshot.documents[querySnapshot.documents.size -1].getTimestamp("timestamp")
+                if (binding.progressBar.visibility == View.VISIBLE) {
+                    binding.progressBar.visibility = View.GONE
+                }
+                lastTimeStamp = querySnapshot.documents[querySnapshot.documents.size - 1].getTimestamp("timestamp")
                 messageList.clear()
                 for (sms in querySnapshot.documents) {
                     sms.toObject(ChatroomSmsModel::class.java)
-                        ?.let { it1 ->
-                            messageList.add(it1)
-                            Log.d("hello", "listenRealtime: ${it1.message}")
-
+                        ?.let { msg ->
+                            messageList.add(msg)
                         }
                 }
+
                 messageAdapter.notifyDataSetChanged()
+
+            } else {
+                isLastPage = true
             }
         }
     }
@@ -310,8 +420,10 @@ class ChatroomActivity : AppCompatActivity() {
     private fun sendMessage() {
 
         val db = FirebaseFirestore.getInstance()
-        val messagesCollection = db.collection("messages")
-            .document(chatroomId!!).collection("chats")
+        val messagesCollection = db.collection("chatrooms")
+            .document(chatroomId!!).collection("messages")
+            .document()
+
         val messageId = messagesCollection.id
 
         val text = binding.edtMessageBox.text.toString().trim()
@@ -327,7 +439,7 @@ class ChatroomActivity : AppCompatActivity() {
         )
 
         messagesCollection
-            .add(messageObj)
+            .set(messageObj)
             .addOnSuccessListener { _ ->
                 // The message was successfully added to Firestore
             }
@@ -340,9 +452,9 @@ class ChatroomActivity : AppCompatActivity() {
 
     // delete the user from chatroom when lives the chatroom
     override fun onDestroy() {
-        val userInChatRef = Firebase.firestore.collection("user_live_in_chatroom")
-            .document(chatroomId!!)
-            .collection("users").document(currentUserUid)
+        val userInChatRef = Firebase.firestore.collection("chatrooms")
+            .document(chatroomId!!).collection("current_users")
+            .document(currentUserUid)
 
         userInChatRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
@@ -354,22 +466,83 @@ class ChatroomActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home -> finish()
+            android.R.id.home -> showAlertDialog()
             R.id.menu_users -> {
-                showBottomLinear()
+                showBottomSheet()
             }
         }
         return true
     }
 
-    private fun showBottomLinear() {
+    private fun showBottomSheet() {
+        val bottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
+        val bottomSheetBehavior: BottomSheetBehavior<View>
         val view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_chat_activity, null)
+        bottomSheetDialog.setContentView(view)
 
-        val btnClose = view.findViewById<ImageView>(R.id.image_close)
+        bottomSheetBehavior = BottomSheetBehavior.from(view.parent as View)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-        val bottomSheet = MyBottomSheetDialog(chatroomId!!)
-        bottomSheet.show(supportFragmentManager, bottomSheet.tag)
-        btnClose.setOnClickListener { bottomSheet.dismiss() }
+        val parentLayout = view.findViewById<LinearLayout>(R.id.parent_layout)
+        assert(parentLayout != null)
+
+        val progressBar: ProgressBar = parentLayout.findViewById(R.id.progress_bar)
+        progressBar.visibility = VISIBLE
+
+        val closeBtn = parentLayout.findViewById<ImageView>(R.id.image_close)
+        val recCurrentUsers : RecyclerView = parentLayout.findViewById(R.id.recycler_view)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            getCurrentUser(progressBar, recCurrentUsers)
+        }
+
+        closeBtn.setOnClickListener {
+            bottomSheetDialog.dismiss()
+        }
+
+
+        parentLayout.minimumHeight = resources.displayMetrics.heightPixels / 2
+
+
+        bottomSheetDialog.show()
+    }
+
+    private suspend fun getCurrentUser(progressBar: ProgressBar, recCurrentUsers: RecyclerView) {
+        progressBar.visibility = VISIBLE
+        withTimeout(5000){
+            try {
+                userList = ArrayList()
+                Firebase.firestore.collection("chatrooms")
+                    .document(chatroomId!!)
+                    .collection("current_users")
+                    .get().addOnSuccessListener { document ->
+                        if (!document.isEmpty){
+                            for (user in document.documents){
+                                val usr = user.toObject(User::class.java)
+                                userList.add(usr!!)
+                            }
+                        }
+
+                        userDataAdapter = ChatroomUserAdapter(userList, applicationContext)
+                        val layoutManager = LinearLayoutManager(applicationContext)
+                        recCurrentUsers.layoutManager = layoutManager
+                        recCurrentUsers.adapter= userDataAdapter
+
+
+
+                        recCurrentUsers.visibility = VISIBLE
+                        progressBar.visibility = GONE
+                    }.addOnFailureListener {
+
+                        MyUtils.showToast(applicationContext, it.message.toString())
+                        progressBar.visibility = GONE
+                    }
+
+            }catch (e : TimeoutCancellationException) {
+                MyUtils.showToast(applicationContext, e.message.toString())
+            }
+        }
+
     }
 
 
@@ -377,6 +550,5 @@ class ChatroomActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.menu_chatroom_act, menu)
         return super.onCreateOptionsMenu(menu)
     }
-
 }
 

@@ -43,7 +43,7 @@
                     android:id="@+id/sender_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="raaz_thehero"
+                    android:text=""
                     android:textSize="10sp" />
 
 
@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:text="this is my message"
+                android:text=""
                 android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -93,7 +93,7 @@
                     android:background="@drawable/search_background"
                     android:layout_marginEnd="5dp"
                     android:textSize="10sp"
-                    android:text="raaz_thehero"
+                    android:text=""
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
                 <de.hdodenhof.circleimageview.CircleImageView
@@ -112,7 +112,7 @@
                 android:layout_marginTop="5dp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:text="this is my message"
+                android:text=""
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>

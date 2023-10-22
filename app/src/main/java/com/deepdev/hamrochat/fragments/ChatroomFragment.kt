@@ -28,7 +28,7 @@ class ChatroomFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
 
         val myView = binding.root
@@ -38,14 +38,8 @@ class ChatroomFragment : Fragment() {
 
         setUpViewPagerForFab()
 
-
         fabClick()
         tabLayoutSetup()
-
-
-
-
-//todo work on chatroom creation
 
         return myView
     }
@@ -55,13 +49,13 @@ class ChatroomFragment : Fragment() {
         val tabLayout = binding.tabLayout
         val adapter = ChatroomViewPagerAdapter(requireActivity())
 
-        adapter.addFragment(ChatroomSubFragment(),  "chatroom")
-        adapter.addFragment(ChatroomSubFragment2(),  "Recent")
+        adapter.addFragment(ChatroomSubFragment(),  "Chatroom")
+        adapter.addFragment(ChatroomSubFragment2(),  "Friends")
 
         viewPager.adapter = adapter
 
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = adapter.titles[position].lowercase()
+            tab.text = adapter.titles[position]
         }.attach()
     }
 
